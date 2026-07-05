@@ -1,6 +1,7 @@
 import { TweetLevel } from '../data/tweets';
 import { escapeHtml } from '../utils';
 import { dashboardUrl } from '../slyk/config';
+import { renderPodcastPlayer } from './podcast-player';
 
 export function renderSlykDock(opts: { highlight?: boolean } = {}): string {
   const url = dashboardUrl();
@@ -25,20 +26,45 @@ export function renderNavalGuide(level: TweetLevel, phase: 'intro' | 'playing' |
 
   return `
     <p class="whisper whisper--${phase}" role="note">
+      <span class="whisper-label">${phase === 'success' ? 'Naval' : phase === 'intro' ? 'Before you play' : 'Hint'}</span>
       <span class="whisper-text">${escapeHtml(messages[phase])}</span>
     </p>
   `;
 }
 
 export function renderTweetCard(level: TweetLevel, total: number): string {
+  const tweetUrl = `https://twitter.com/naval/status/1002103360646823936`;
+
   return `
-    <blockquote class="tweet">
-      <footer class="tweet-meta">
-        <span class="tweet-index">${String(level.id).padStart(2, '0')}</span>
-        <span class="tweet-of">of ${total}</span>
-      </footer>
-      <p class="tweet-body">${escapeHtml(level.tweet)}</p>
-    </blockquote>
+    <article class="tweet-feature" aria-labelledby="tweet-heading-${level.id}">
+      <header class="tweet-feature-head">
+        <div class="tweet-author">
+          <span class="tweet-avatar" aria-hidden="true">N</span>
+          <div class="tweet-author-meta">
+            <span class="tweet-author-name">Naval Ravikant</span>
+            <span class="tweet-author-handle">@naval</span>
+          </div>
+        </div>
+        <div class="tweet-source">
+          <span class="tweet-index" id="tweet-heading-${level.id}">Tweet ${level.id}</span>
+          <span class="tweet-of">of ${total}</span>
+          <span class="tweet-storm">How to Get Rich</span>
+        </div>
+      </header>
+
+      <blockquote class="tweet tweet--featured">
+        <p class="tweet-body">${escapeHtml(level.tweet)}</p>
+      </blockquote>
+
+      <p class="tweet-attribution">
+        From Naval's
+        <a href="${escapeHtml(tweetUrl)}" target="_blank" rel="noopener noreferrer">May 2018 tweetstorm</a>
+        · expanded in the
+        <a href="https://nav.al/rich" target="_blank" rel="noopener noreferrer">podcast with Nivi</a>
+      </p>
+
+      ${renderPodcastPlayer(level.id)}
+    </article>
   `;
 }
 

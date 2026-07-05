@@ -4,32 +4,11 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
   {
     id: 21,
     tweet:
-      'Fortunes require leverage. Business leverage comes from capital, people, and products with no marginal cost of replication (code and media).',
-    riddle: 'Rank four levers. The tweet names which replicate for free.',
-    navalIntro: 'Capital, labor, code, media — but only two scale without marginal cost.',
-    navalSuccess: 'Code and media. Zero marginal cost of replication.',
-    navalHint: 'Collect code and media — not capital or labor.',
-    title: 'Four Levers',
-    type: 'collect',
-    config: {
-      prompt: 'Collect zero marginal cost leverage:',
-      items: [
-        { id: 'code', label: 'Code', icon: '💻', permissionless: true },
-        { id: 'media', label: 'Media', icon: '🎙️', permissionless: true },
-        { id: 'capital', label: 'Capital', icon: '🏦', permissionless: false },
-        { id: 'labor', label: 'Labor', icon: '👥', permissionless: false },
-      ],
-      requiredCount: 2,
-    },
-  },
-  {
-    id: 22,
-    tweet:
       'Capital means money. To raise money, apply your specific knowledge, with accountability, and show resulting good judgment.',
     riddle: 'Complete the pitch: specific knowledge + accountability + judgment = capital.',
     navalIntro: 'Investors fund judgment demonstrated under your own name.',
-    navalSuccess: 'Money follows proven judgment.',
-    navalHint: 'Choose the path that shows all three.',
+    navalSuccess: 'That is how you raise capital — not by chasing it.',
+    navalHint: 'Tap the fundraising chain in order.',
     title: 'Raise Capital',
     type: 'tap-sequence',
     config: {
@@ -42,7 +21,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 23,
+    id: 22,
     tweet:
       "Labor means people working for you. It's the oldest and most fought-over form of leverage. Labor leverage will impress your parents, but don't waste your life chasing it.",
     riddle: 'Parent approval rises with headcount. Victory needs a smaller team.',
@@ -79,7 +58,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 24,
+    id: 23,
     tweet:
       'Capital and labor are permissioned leverage. Everyone is chasing capital, but someone has to give it to you. Everyone is trying to lead, but someone has to follow you.',
     riddle: 'Two gates need a yes. Two paths are already open.',
@@ -104,7 +83,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 25,
+    id: 24,
     tweet:
       "Code and media are permissionless leverage. They're the leverage behind the newly rich. You can create software and media that works for you while you sleep.",
     riddle: 'Deploy before sleep. Earnings continue in the dark.',
@@ -120,7 +99,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 26,
+    id: 25,
     tweet:
       "An army of robots is freely available — it's just packed in data centers for heat and space efficiency. Use it.",
     riddle: 'Compute is packed in racks. Unpack it to the work.',
@@ -139,7 +118,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 27,
+    id: 26,
     tweet:
       "If you can't code, write books and blogs, record videos and podcasts.",
     riddle: 'Two branches, same destination. Code or media.',
@@ -158,7 +137,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 28,
+    id: 27,
     tweet: 'Leverage is a force multiplier for your judgment.',
     riddle: 'Judgment × leverage. Alone, each plateaus.',
     navalIntro: 'Without leverage, judgment hits a ceiling.',
@@ -173,7 +152,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 29,
+    id: 28,
     tweet:
       'Judgment requires experience, but can be built faster by learning foundational skills.',
     riddle: 'Foundations beat waiting. Pick the fast learner.',
@@ -192,7 +171,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 30,
+    id: 29,
     tweet: 'There is no skill called "business." Avoid business magazines and business classes.',
     riddle: 'Filter the feed. Real skills pass through.',
     navalIntro: 'Business is not a skill. It is a label.',
@@ -216,7 +195,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 31,
+    id: 30,
     tweet:
       'Study microeconomics, game theory, psychology, persuasion, ethics, mathematics, and computers.',
     riddle: 'Seven pillars. Connect each pair that belongs together.',
@@ -241,7 +220,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 32,
+    id: 31,
     tweet: 'Reading is faster than listening. Doing is faster than watching.',
     riddle: 'Speed ladder: read, then do. Not watch, then listen.',
     navalIntro: 'Modality matters. Choose the faster path to mastery.',
@@ -258,7 +237,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 33,
+    id: 32,
     tweet:
       'You should be too busy to "do coffee," while still keeping an uncluttered calendar.',
     riddle: 'Decline coffee. Place deep work. Leave gaps.',
@@ -283,7 +262,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 34,
+    id: 33,
     tweet:
       'Set and enforce an aspirational personal hourly rate. If fixing a problem will save less than your hourly rate, ignore it. If outsourcing a task will cost less than your hourly rate, outsource it.',
     riddle: 'Draw your rate line. Ignore what falls below.',
@@ -307,7 +286,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 35,
+    id: 34,
     tweet:
       'Work as hard as you can. Even though who you work with and what you work on are more important than how hard you work.',
     riddle: 'Effort alone caps at half. Right quest unlocks full score.',
@@ -344,7 +323,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 36,
+    id: 35,
     tweet:
       'Become the best in the world at what you do. Keep redefining what you do until this is true.',
     riddle: 'Walk the narrowing path. Jack-of-all-trades is a dead end.',
@@ -370,7 +349,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 37,
+    id: 36,
     tweet: "There are no get rich quick schemes. That's just someone else getting rich off you.",
     riddle: 'Ten offers flash. One path compounds slowly.',
     navalIntro: 'If it is quick, you are the product.',
@@ -394,7 +373,7 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
     },
   },
   {
-    id: 38,
+    id: 37,
     tweet:
       'Apply specific knowledge, with leverage, and eventually you will get what you deserve.',
     riddle: 'Final equation: specific knowledge × leverage × accountability.',
@@ -412,6 +391,43 @@ export const TWEET_LEVELS_EXTRA: TweetLevel[] = [
         { id: 'luck', label: 'Pure luck', icon: '🎲', permissionless: false },
       ],
       requiredCount: 3,
+    },
+  },
+  {
+    id: 38,
+    tweet:
+      'Productize yourself. Find what feels like play to you but looks like work to others, and build leverage around it.',
+    riddle: 'Your name on the work. The work outlives your hours.',
+    navalIntro: 'Turn specific knowledge into something that scales beyond you.',
+    navalSuccess: 'That is productize yourself — you are the niche.',
+    navalHint: 'Pick the path with your name on it and leverage attached.',
+    title: 'Productize Yourself',
+    type: 'choice',
+    config: {
+      prompt: 'Which path productizes you?',
+      options: [
+        {
+          id: 'a',
+          label: 'Anonymous hourly work',
+          sublabel: 'No leverage, no brand',
+          correct: false,
+          icon: '👤',
+        },
+        {
+          id: 'b',
+          label: 'Named product + media leverage',
+          sublabel: 'Scales while you sleep',
+          correct: true,
+          icon: '🚀',
+        },
+        {
+          id: 'c',
+          label: 'Copy trending hustle',
+          sublabel: 'No specific knowledge',
+          correct: false,
+          icon: '📋',
+        },
+      ],
     },
   },
   {

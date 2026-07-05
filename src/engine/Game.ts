@@ -1,5 +1,6 @@
 import { TWEET_LEVELS_ALL, TOTAL_LEVELS, TweetLevel } from '../data/tweets';
 import { renderNavalGuide, renderTweetCard, renderLevelHeader, renderSlykDock } from '../components/ui';
+import { bindPodcastPlayer } from '../components/podcast-player';
 import { renderHomeScreen, renderLevelRewardBlock, renderShopStrip } from '../components/home';
 import { bindTopNav, renderTopNav } from '../components/nav';
 import { renderAuthModal, renderWalletBar } from '../components/wallet-bar';
@@ -329,7 +330,7 @@ export class Game {
       <div class="screen screen--level phase--${this.phase}">
         ${renderLevelHeader(level, this.currentLevel, TOTAL_LEVELS)}
         ${renderWalletBar(this.me)}
-        <article class="lesson ${isIntro ? 'lesson--open' : 'lesson--compact'}">
+        <article class="lesson lesson--open">
           ${renderTweetCard(level, TOTAL_LEVELS)}
           ${renderNavalGuide(level, this.phase)}
           ${boostNote}
@@ -348,6 +349,7 @@ export class Game {
     `);
 
     this.bindAuthChrome();
+    bindPodcastPlayer(this.root);
     this.root.querySelector('#btn-home')?.addEventListener('click', () => {
       saveProgress(this.currentLevel);
       this.go('home');
