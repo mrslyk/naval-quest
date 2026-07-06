@@ -1,29 +1,55 @@
-import { getPodcastSegment, formatTimestamp, PODCAST_NAV_AL_URL } from '../data/podcast';
+import { getPodcastSegment, formatTimestamp, PODCAST_NAV_AL_URL, PODCAST_APPLE_SHOW_URL, PODCAST_SPOTIFY_URL } from '../data/podcast';
+import { getNavalRichLevel, navAlSectionUrl } from '../data/naval-rich';
 import { escapeHtml } from '../utils';
+
+function pickExcerpt(levelId: number): string {
+  const rich = getNavalRichLevel(levelId);
+  if (rich?.navalQuotes[0]) return rich.navalQuotes[0];
+  if (rich?.taglines[0]) return rich.taglines[0];
+  const seg = getPodcastSegment(levelId);
+  return seg?.excerpt ?? '';
+}
 
 export function renderPodcastPlayer(levelId: number): string {
   const seg = getPodcastSegment(levelId);
-  if (!seg) return '';
+  const rich = getNavalRichLevel(levelId);
+  if (!seg && !rich) return '';
 
-  const duration = seg.endSec - seg.startSec;
+  const chapterTitle = rich?.sectionTitle ?? seg?.chapterTitle ?? 'How to Get Rich';
+  const excerpt = pickExcerpt(levelId);
+  const transcriptUrl = navAlSectionUrl(levelId);
+  const startSec = seg?.startSec ?? 0;
+  const endSec = seg?.endSec ?? startSec + 300;
+  const duration = endSec - startSec;
   const durationLabel = formatTimestamp(duration);
+  const embedUrl = seg?.embedUrl ?? '';
+  const youtubeUrl = seg?.youtubeUrl ?? PODCAST_NAV_AL_URL;
 
   return `
     <section class="podcast-block" aria-label="Naval podcast clip for this tweet">
       <div class="podcast-block-head">
         <span class="podcast-badge">Naval Podcast</span>
-        <span class="podcast-chapter">${escapeHtml(seg.chapterTitle)}</span>
-        <span class="podcast-time">${formatTimestamp(seg.startSec)} · ~${durationLabel}</span>
+        <a class="podcast-chapter podcast-chapter--link" href="${escapeHtml(transcriptUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(chapterTitle)}</a>
+        ${seg ? `<span class="podcast-time">${formatTimestamp(startSec)} · ~${durationLabel}</span>` : ''}
       </div>
-      <p class="podcast-excerpt">${escapeHtml(seg.excerpt)}</p>
+      ${excerpt ? `<p class="podcast-excerpt">${escapeHtml(excerpt)}</p>` : ''}
       <div class="podcast-actions">
-        <button type="button" class="btn-podcast-play" id="btn-podcast-play" data-embed="${escapeHtml(seg.embedUrl)}" data-youtube="${escapeHtml(seg.youtubeUrl)}">
+        ${
+          embedUrl
+            ? `<button type="button" class="btn-podcast-play" id="btn-podcast-play" data-embed="${escapeHtml(embedUrl)}" data-youtube="${escapeHtml(youtubeUrl)}">
           <span class="btn-podcast-icon" aria-hidden="true">▶</span>
           Hear Naval on this tweet
-        </button>
-        <a class="btn-text btn-text--link" href="${escapeHtml(PODCAST_NAV_AL_URL)}" target="_blank" rel="noopener noreferrer">Full transcript →</a>
+        </button>`
+            : ''
+        }
+        <a class="btn-text btn-text--link" href="${escapeHtml(transcriptUrl)}" target="_blank" rel="noopener noreferrer">Read on nav.al/rich →</a>
+        <a class="btn-text btn-text--link" href="${escapeHtml(youtubeUrl)}" target="_blank" rel="noopener noreferrer">YouTube →</a>
+        <a class="btn-text btn-text--link" href="${escapeHtml(PODCAST_APPLE_SHOW_URL)}" target="_blank" rel="noopener noreferrer">Apple →</a>
+        <a class="btn-text btn-text--link" href="${escapeHtml(PODCAST_SPOTIFY_URL)}" target="_blank" rel="noopener noreferrer">Spotify →</a>
       </div>
-      <div class="podcast-frame-wrap" id="podcast-frame-wrap" hidden>
+      ${
+        embedUrl
+          ? `<div class="podcast-frame-wrap" id="podcast-frame-wrap" hidden>
         <iframe
           id="podcast-frame"
           class="podcast-frame"
@@ -32,7 +58,9 @@ export function renderPodcastPlayer(levelId: number): string {
           allowfullscreen
           loading="lazy"
         ></iframe>
-      </div>
+      </div>`
+          : ''
+      }
     </section>
   `;
 }

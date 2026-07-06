@@ -1,7 +1,9 @@
 import { TweetLevel } from '../data/tweets';
 import { escapeHtml } from '../utils';
 import { dashboardUrl } from '../slyk/config';
+import { getNavalRichLevel, navAlSectionUrl, NAVAL_RICH_SOURCE_URL } from '../data/naval-rich';
 import { renderPodcastPlayer } from './podcast-player';
+import { renderLevelMediaStrip } from './media-hub';
 
 export function renderSlykDock(opts: { highlight?: boolean } = {}): string {
   const url = dashboardUrl();
@@ -32,8 +34,59 @@ export function renderNavalGuide(level: TweetLevel, phase: 'intro' | 'playing' |
   `;
 }
 
+function renderRichQuotes(levelId: number): string {
+  const rich = getNavalRichLevel(levelId);
+  if (!rich) return '';
+
+  const blocks: string[] = [];
+
+  if (rich.taglines.length) {
+    blocks.push(`
+      <div class="rich-taglines" aria-label="Themes from nav.al/rich">
+        ${rich.taglines.map((t) => `<p class="rich-tagline">${escapeHtml(t)}</p>`).join('')}
+      </div>
+    `);
+  }
+
+  for (const q of rich.navalQuotes.slice(0, 2)) {
+    blocks.push(`
+      <blockquote class="rich-quote rich-quote--naval">
+        <span class="rich-quote-speaker">Naval</span>
+        <p>${escapeHtml(q)}</p>
+      </blockquote>
+    `);
+  }
+
+  for (const q of rich.niviQuotes.slice(0, 1)) {
+    blocks.push(`
+      <blockquote class="rich-quote rich-quote--nivi">
+        <span class="rich-quote-speaker">Nivi</span>
+        <p>${escapeHtml(q)}</p>
+      </blockquote>
+    `);
+  }
+
+  if (!blocks.length) return '';
+
+  return `
+    <section class="rich-quotes" aria-label="Quotes from the How to Get Rich podcast">
+      <div class="rich-quotes-head">
+        <span class="rich-quotes-label">From the podcast</span>
+        <a class="rich-quotes-link" href="${escapeHtml(navAlSectionUrl(levelId))}" target="_blank" rel="noopener noreferrer">
+          ${escapeHtml(rich.sectionTitle)} →
+        </a>
+      </div>
+      ${blocks.join('')}
+    </section>
+  `;
+}
+
 export function renderTweetCard(level: TweetLevel, total: number): string {
-  const tweetUrl = `https://twitter.com/naval/status/1002103360646823936`;
+  const rich = getNavalRichLevel(level.id);
+  const tweet = rich?.tweet ?? level.tweet;
+  const sectionTitle = rich?.sectionTitle ?? 'How to Get Rich';
+  const transcriptUrl = rich ? navAlSectionUrl(level.id) : NAVAL_RICH_SOURCE_URL;
+  const tweetUrl = 'https://twitter.com/naval/status/1002103360646823936';
 
   return `
     <article class="tweet-feature" aria-labelledby="tweet-heading-${level.id}">
@@ -53,17 +106,21 @@ export function renderTweetCard(level: TweetLevel, total: number): string {
       </header>
 
       <blockquote class="tweet tweet--featured">
-        <p class="tweet-body">${escapeHtml(level.tweet)}</p>
+        <p class="tweet-body">${escapeHtml(tweet)}</p>
       </blockquote>
 
       <p class="tweet-attribution">
-        From Naval's
-        <a href="${escapeHtml(tweetUrl)}" target="_blank" rel="noopener noreferrer">May 2018 tweetstorm</a>
-        · expanded in the
-        <a href="https://nav.al/rich" target="_blank" rel="noopener noreferrer">podcast with Nivi</a>
+        Tweet from
+        <a href="${escapeHtml(tweetUrl)}" target="_blank" rel="noopener noreferrer">@naval's thread</a>
+        · discussed in
+        <a href="${escapeHtml(transcriptUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(sectionTitle)}</a>
+        on
+        <a href="${escapeHtml(NAVAL_RICH_SOURCE_URL)}" target="_blank" rel="noopener noreferrer">nav.al/rich</a>
       </p>
 
+      ${renderRichQuotes(level.id)}
       ${renderPodcastPlayer(level.id)}
+      ${renderLevelMediaStrip()}
     </article>
   `;
 }

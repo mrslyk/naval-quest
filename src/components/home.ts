@@ -3,6 +3,7 @@ import { escapeHtml } from '../utils';
 import { renderSlykDock } from './ui';
 import { renderTopNav } from './nav';
 import { renderWalletBar } from './wallet-bar';
+import { renderMediaHub } from './media-hub';
 import { LevelRewardResult } from '../slyk/bridge';
 import { MeResponse } from '../slyk/session';
 
@@ -60,48 +61,57 @@ export function renderHomeScreen(opts: {
   const perLevel = me?.economy?.levelReward
     ? `${me.economy.levelReward} ${symbol}`
     : `10 ${symbol}`;
-  const resumeLabel = saved > 0 ? `Resume · level ${saved + 1}` : 'Play Naval Quest';
+  const resumeLabel = saved > 0 ? `Resume · level ${saved + 1}` : 'Start the quest';
 
   return `
     <div class="screen screen--home">
       ${renderTopNav('home')}
       ${renderWalletBar(me)}
-      <div class="home-layout">
-        <header class="home-hero">
-          <p class="kicker">How to get rich</p>
-          <h1 class="display">Naval Quest</h1>
-          <p class="lede">Fund · Play · Earn ${escapeHtml(symbol)} · Cash out</p>
+
+      <div class="landing">
+        <header class="landing-hero">
+          <p class="kicker">How to get rich · without getting lucky</p>
+          <h1 class="display landing-title">Naval Quest</h1>
+          <p class="lede landing-lede">
+            Play through all ${TOTAL_LEVELS} tweets from Naval Ravikant’s legendary thread.
+            Watch the podcast. Earn ${escapeHtml(symbol)}. Cash out when you finish.
+          </p>
+          <div class="landing-cta">
+            <button class="btn-primary btn-primary--lg" id="btn-start" type="button">${escapeHtml(resumeLabel)}</button>
+            <button class="btn-secondary" id="btn-how-home" type="button">How it works</button>
+          </div>
+          ${loading ? '<p class="home-loading">Loading wallet…</p>' : ''}
         </header>
 
-        ${loading ? '<p class="home-loading">Loading wallet…</p>' : ''}
+        ${renderMediaHub()}
 
-        <section class="flywheel" aria-label="Economy">
-          <ol class="flywheel-steps">
+        <section class="landing-economy" aria-label="Game economy">
+          <h2 class="media-section-title">Fund · Play · Earn · Cash out</h2>
+          <p class="media-section-lede">A real NAV wallet on Slyk — not just points on a leaderboard.</p>
+          <ol class="flywheel-steps flywheel-steps--landing">
             <li class="flywheel-step">
               <span class="flywheel-icon">①</span>
-              <div><strong>Add funds</strong><p>Stripe, PayPal, or Coinbase.</p></div>
+              <div><strong>Add funds</strong><p>Stripe, PayPal, or Coinbase support the reward pool.</p></div>
             </li>
             <li class="flywheel-step">
               <span class="flywheel-icon">②</span>
-              <div><strong>Earn ${escapeHtml(symbol)}</strong><p>${escapeHtml(perLevel)} per level cleared.</p></div>
+              <div><strong>Earn ${escapeHtml(symbol)}</strong><p>${escapeHtml(perLevel)} per level cleared via Slyk tasks.</p></div>
             </li>
             <li class="flywheel-step">
               <span class="flywheel-icon">③</span>
-              <div><strong>Spend help</strong><p>Hints &amp; skips cost ${escapeHtml(symbol)}.</p></div>
+              <div><strong>Spend in-game</strong><p>Hints, reveals, and skips cost ${escapeHtml(symbol)}.</p></div>
             </li>
             <li class="flywheel-step">
               <span class="flywheel-icon">④</span>
-              <div><strong>Cash out</strong><p>Convert to fiat/crypto after level ${TOTAL_LEVELS}.</p></div>
+              <div><strong>Cash out</strong><p>Convert to USD / USDC / BTC after level ${TOTAL_LEVELS}.</p></div>
             </li>
           </ol>
+          <div class="landing-economy-actions">
+            <button class="btn-secondary" id="btn-fund-home" type="button">Add funds</button>
+            <button class="btn-text" id="btn-cashout-home" type="button">Cash out</button>
+            ${saved > 0 ? '<button class="btn-text" id="btn-reset" type="button">Start over</button>' : ''}
+          </div>
         </section>
-
-        <div class="home-play">
-          <button class="btn-primary" id="btn-start" type="button">${resumeLabel}</button>
-          <button class="btn-secondary" id="btn-fund-home" type="button">Add funds</button>
-          <button class="btn-text" id="btn-cashout-home" type="button">Cash out</button>
-          ${saved > 0 ? '<button class="btn-text" id="btn-reset" type="button">Start over</button>' : ''}
-        </div>
       </div>
       ${renderSlykDock()}
     </div>

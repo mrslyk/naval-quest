@@ -8,6 +8,8 @@ export const PODCAST_YOUTUBE_ID = '1-TZqOsVCNM';
 export const PODCAST_NAV_AL_URL = 'https://nav.al/rich';
 export const PODCAST_APPLE_URL =
   'https://podcasts.apple.com/us/podcast/how-to-get-rich-every-episode/id1454097755?i=1000440401437';
+export const PODCAST_SPOTIFY_URL = 'https://open.spotify.com/show/7qZAVw03FuurfYnWIWwkHY';
+export const PODCAST_APPLE_SHOW_URL = 'https://podcasts.apple.com/us/podcast/naval/id1454097755';
 
 export interface PodcastChapter {
   title: string;

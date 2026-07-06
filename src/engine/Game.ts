@@ -1,6 +1,7 @@
 import { TWEET_LEVELS_ALL, TOTAL_LEVELS, TweetLevel } from '../data/tweets';
 import { renderNavalGuide, renderTweetCard, renderLevelHeader, renderSlykDock } from '../components/ui';
 import { bindPodcastPlayer } from '../components/podcast-player';
+import { bindMediaHub } from '../components/media-hub';
 import { renderHomeScreen, renderLevelRewardBlock, renderShopStrip } from '../components/home';
 import { bindTopNav, renderTopNav } from '../components/nav';
 import { renderAuthModal, renderWalletBar } from '../components/wallet-bar';
@@ -205,11 +206,13 @@ export class Game {
     });
     this.root.querySelector('#btn-fund-home')?.addEventListener('click', () => this.go('fund'));
     this.root.querySelector('#btn-cashout-home')?.addEventListener('click', () => this.go('cashout'));
+    this.root.querySelector('#btn-how-home')?.addEventListener('click', () => this.go('how'));
     this.root.querySelector('#btn-reset')?.addEventListener('click', () => {
       resetProgress();
       this.currentLevel = 0;
       this.renderHome();
     });
+    bindMediaHub(this.root);
   }
 
   private renderFund(): void {
@@ -252,6 +255,8 @@ export class Game {
       this.phase = 'intro';
       this.render();
     });
+    this.root.querySelector('#how-goto-home')?.addEventListener('click', () => this.go('home'));
+    bindMediaHub(this.root);
   }
 
   private renderCashout(): void {
