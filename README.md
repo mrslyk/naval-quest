@@ -63,6 +63,22 @@ npm run build   # → dist/
 npm run preview
 ```
 
+## Deploy on Netlify
+
+1. **Import** [github.com/mrslyk/naval-quest](https://github.com/mrslyk/naval-quest) in [Netlify](https://app.netlify.com/) → Add new site → Import from Git.
+2. **Build settings** (auto-detected from `netlify.toml`):
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+   - Functions directory: `netlify/functions`
+3. **Environment variables** — copy from `.env.example` into Netlify → Site settings → Environment variables:
+   - `SLYK_API_KEY` (required, server-only)
+   - `VITE_SLYK_DASHBOARD_URL`, `VITE_SLYK_PAYSPACE_ORIGIN`, `VITE_SLYK_API_HOST`
+   - `NAVAL_GAME_ORIGIN` → your Netlify URL (e.g. `https://naval-quest.netlify.app`)
+   - `SLYK_PAYSPACE_ORIGIN`, `NAVAL_REWARD_ASSET`, etc.
+4. **Deploy** — Netlify runs `npm run build` and serves the SPA; `/api/*` routes hit the Netlify Function.
+
+Custom domain: add in Netlify → Domain management, then update `NAVAL_GAME_ORIGIN` and Slyk payspace URLs if needed.
+
 ## License
 
 Educational tribute to Naval's tweetstorm. Not affiliated with Naval Ravikant.
