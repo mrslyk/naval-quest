@@ -428,7 +428,7 @@ export const TWEET_LEVELS: TweetLevel[] = [
   {
     id: 13,
     tweet:
-      'Specific knowledge is knowledge you cannot be trained for. If society can train you, it can train someone else and replace you.',
+      'Specific knowledge is knowledge that you cannot be trained for. If society can train you, it can train someone else, and replace you.',
     navalIntro:
       'If a bootcamp can teach it, you\'re replaceable. Find knowledge only you can have.',
     navalSuccess: 'Irreplaceable knowledge. Society can\'t train a clone of you.',
