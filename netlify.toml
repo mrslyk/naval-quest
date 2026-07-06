@@ -1,4 +1,5 @@
 [build]
+  # Repo root — overrides any bad Base directory in the Netlify UI (e.g. "main")
   base = "."
   command = "npm run build"
   publish = "dist"
@@ -10,14 +11,12 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-# API routes -> single Netlify Function (api/router.js)
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api"
   status = 200
   force = true
 
-# SPA fallback (must be last)
 [[redirects]]
   from = "/*"
   to = "/index.html"
