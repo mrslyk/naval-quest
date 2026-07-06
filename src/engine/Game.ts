@@ -25,12 +25,12 @@ import { renderFundPage } from '../pages/fund';
 import { renderHowItWorksPage } from '../pages/how-it-works';
 import { renderCashoutPage } from '../pages/cashout';
 
-type Screen = 'splash' | 'home' | 'fund' | 'how' | 'cashout' | 'level' | 'complete';
+type Screen = 'home' | 'fund' | 'how' | 'cashout' | 'level' | 'complete';
 
 export class Game {
   private root: HTMLElement;
   private currentLevel = 0;
-  private screen: Screen = 'splash';
+  private screen: Screen = 'home';
   private phase: 'intro' | 'playing' | 'success' = 'intro';
   private me: MeResponse | null = null;
   private authMode: 'login' | 'signup' | null = null;
@@ -151,9 +151,6 @@ export class Game {
 
   private render(): void {
     switch (this.screen) {
-      case 'splash':
-        this.renderSplash();
-        break;
       case 'home':
         this.renderHome();
         break;
@@ -175,35 +172,20 @@ export class Game {
     }
   }
 
-  private renderSplash(): void {
-    this.root.innerHTML = `
-      <div class="screen screen--splash">
-        <div class="splash-inner">
-          <div class="splash-mark" aria-hidden="true">✦</div>
-          <p class="splash-kicker">Slyk × Naval Ravikant</p>
-          <h1 class="splash-title">Naval Quest</h1>
-          <p class="splash-tagline">How to get rich<br /><em>without getting lucky</em></p>
-          <p class="splash-lede">Earn NAV every level.<br />Fund with card or crypto. Cash out when you finish.</p>
-          <button class="btn-primary splash-enter" id="btn-splash-enter" type="button">Enter</button>
-        </div>
-        ${renderSlykDock()}
-      </div>
-    `;
-    this.root.querySelector('#btn-splash-enter')?.addEventListener('click', () => this.go('home'));
-  }
-
   private renderHome(): void {
     this.root.innerHTML = this.withAuthModal(
       renderHomeScreen({ saved: loadProgress(), me: this.me, loading: false })
     );
     this.bindNav();
-    this.root.querySelector('#btn-start')?.addEventListener('click', () => {
+    const startPlay = () => {
       this.screen = 'level';
       this.currentLevel = loadProgress();
       this.phase = 'intro';
       this.levelBoost = {};
       this.render();
-    });
+    };
+    this.root.querySelector('#btn-start')?.addEventListener('click', startPlay);
+    this.root.querySelector('#btn-start-2')?.addEventListener('click', startPlay);
     this.root.querySelector('#btn-fund-home')?.addEventListener('click', () => this.go('fund'));
     this.root.querySelector('#btn-cashout-home')?.addEventListener('click', () => this.go('cashout'));
     this.root.querySelector('#btn-how-home')?.addEventListener('click', () => this.go('how'));
