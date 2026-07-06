@@ -77,6 +77,8 @@ npm run preview
    - `SLYK_PAYSPACE_ORIGIN`, `NAVAL_REWARD_ASSET`, etc.
 4. **Deploy** — Netlify runs `npm run build` and serves the SPA; `/api/*` routes hit the Netlify Function.
 
+**If deploy fails with "Reading and parsing configuration files":** go to Site configuration → Build & deploy → Build settings and **clear the Base directory** (leave it blank). Netlify must build from the repo root where `netlify.toml` and `package.json` live — do not set it to `main` or a subfolder.
+
 Custom domain: add in Netlify → Domain management, then update `NAVAL_GAME_ORIGIN` and Slyk payspace URLs if needed.
 
 ## License
