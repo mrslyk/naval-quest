@@ -84,7 +84,7 @@ export const TOP_VIDEOS: MediaVideo[] = [
       'Naval × Nivi walk through every tweet in the legendary thread. The source material for all 39 quest levels.',
     youtubeId: '1-TZqOsVCNM',
     duration: '3h 36m',
-    views: '5M+',
+    views: '12.5M',
     tag: 'Deep dive',
   },
   {
@@ -94,8 +94,18 @@ export const TOP_VIDEOS: MediaVideo[] = [
       'Naval on meditation, the tweetstorm, happiness frameworks, and Silicon Valley — his most-watched long-form interview.',
     youtubeId: '3qHkcs3kG44',
     duration: '2h 12m',
-    views: '14M+',
+    views: '14.5M',
     tag: 'Classic',
+  },
+  {
+    id: 'modern-wisdom',
+    title: '44 Harsh Truths About The Game Of Life',
+    description:
+      'Modern Wisdom (2025) — Naval’s biggest interview in years. Status games, self-esteem, wealth, and happiness.',
+    youtubeId: 'KyfUysrNaco',
+    duration: '3h 16m',
+    views: '5.5M',
+    tag: 'New',
   },
   {
     id: 'tim-happiness',
@@ -103,7 +113,7 @@ export const TOP_VIDEOS: MediaVideo[] = [
     description: 'Tim Ferriss deep dive — happiness, crypto, and the philosophy behind the tweetstorm.',
     youtubeId: 'HiYo14wylQw',
     duration: '2h 2m',
-    views: '1.3M+',
+    views: '1.3M',
   },
   {
     id: 'knowledge-project',
@@ -112,15 +122,7 @@ export const TOP_VIDEOS: MediaVideo[] = [
       'Shane Parrish (Farnam Street) on reading, decisions, habits, and the purpose of life.',
     youtubeId: 'mGY2To_HW98',
     duration: '2h 2m',
-    views: '700K+',
-  },
-  {
-    id: 'tim-2015',
-    title: 'The Tim Ferriss Show (2015)',
-    description: 'The interview that put Naval on the map — wealth, books, and life formulas.',
-    youtubeId: '-7J-Gwc9pVg',
-    duration: '1h 42m',
-    views: '2M+',
+    views: '707K',
   },
 ];
 
