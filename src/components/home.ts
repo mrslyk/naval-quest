@@ -66,6 +66,26 @@ export function renderHomeScreen(opts: {
   const progressPct = Math.round((saved / TOTAL_LEVELS) * 100);
   const fv = FEATURED_VIDEO;
 
+  const marqueeQuotes = [
+    'Seek wealth, not money or status',
+    'Play long-term games with long-term people',
+    'Learn to sell. Learn to build.',
+    'Code and media are permissionless leverage',
+    'All the returns in life come from compound interest',
+    'Specific knowledge feels like play to you',
+    'Escape competition through authenticity',
+    'Productize yourself',
+  ];
+  const marqueeRun = marqueeQuotes
+    .map((q) => `<span class="marquee-item">${escapeHtml(q)}</span><span class="marquee-star" aria-hidden="true">✦</span>`)
+    .join('');
+
+  const pathChips = Array.from({ length: TOTAL_LEVELS }, (_, i) => {
+    const n = i + 1;
+    const cls = i < saved ? 'path-chip path-chip--done' : i === saved ? 'path-chip path-chip--now' : 'path-chip';
+    return `<span class="${cls}">${i < saved ? '✓' : n}</span>`;
+  }).join('');
+
   return `
     <div class="screen screen--home">
       ${renderTopNav('home')}
@@ -74,20 +94,21 @@ export function renderHomeScreen(opts: {
       <div class="landing">
 
         <header class="hero">
+          <div class="hero-glow" aria-hidden="true"></div>
           <div class="hero-copy">
-            <p class="hero-kicker">Slyk × Naval Ravikant</p>
-            <h1 class="hero-title">Get rich<br /><em>without getting lucky.</em></h1>
-            <p class="hero-lede">
+            <p class="hero-kicker anim-up" style="--d:0">Slyk × Naval Ravikant</p>
+            <h1 class="hero-title anim-up" style="--d:1">Get rich<br /><em class="shimmer">without getting lucky.</em></h1>
+            <p class="hero-lede anim-up" style="--d:2">
               Naval’s legendary tweetstorm, turned into a game. ${TOTAL_LEVELS} levels.
               Real podcast clips. Real ${escapeHtml(symbol)} in a real wallet — cash out when you finish.
             </p>
-            <div class="hero-cta">
-              <button class="btn-primary btn-primary--lg" id="btn-start" type="button">${escapeHtml(resumeLabel)} →</button>
+            <div class="hero-cta anim-up" style="--d:3">
+              <button class="btn-primary btn-primary--lg btn-glow" id="btn-start" type="button">${escapeHtml(resumeLabel)} →</button>
               <button class="btn-ghost" id="btn-how-home" type="button">How it works</button>
             </div>
             ${
               saved > 0
-                ? `<div class="hero-progress" role="progressbar" aria-valuenow="${saved}" aria-valuemin="0" aria-valuemax="${TOTAL_LEVELS}">
+                ? `<div class="hero-progress anim-up" style="--d:4" role="progressbar" aria-valuenow="${saved}" aria-valuemin="0" aria-valuemax="${TOTAL_LEVELS}">
                     <div class="hero-progress-track"><div class="hero-progress-fill" style="width:${progressPct}%"></div></div>
                     <span class="hero-progress-label">${saved} / ${TOTAL_LEVELS} tweets cleared</span>
                   </div>`
@@ -96,21 +117,25 @@ export function renderHomeScreen(opts: {
             ${loading ? '<p class="home-loading">Loading wallet…</p>' : ''}
           </div>
 
-          <div class="hero-card" aria-hidden="false">
-            <article class="hero-tweet">
-              <header class="hero-tweet-head">
-                <span class="hero-tweet-avatar">N</span>
-                <div>
-                  <span class="hero-tweet-name">Naval Ravikant</span>
-                  <span class="hero-tweet-handle">@naval · May 31, 2018</span>
-                </div>
-              </header>
-              <p class="hero-tweet-body">Seek wealth, not money or status. Wealth is having assets that earn while you sleep.</p>
-              <footer class="hero-tweet-foot">
-                <span>Level 1 of ${TOTAL_LEVELS}</span>
-                <span class="hero-tweet-reward">+${escapeHtml(perLevel)}</span>
-              </footer>
-            </article>
+          <div class="hero-card anim-up" style="--d:2" aria-hidden="false">
+            <div class="hero-deck">
+              <article class="hero-tweet hero-tweet--ghost hero-tweet--ghost-2" aria-hidden="true"></article>
+              <article class="hero-tweet hero-tweet--ghost" aria-hidden="true"></article>
+              <article class="hero-tweet">
+                <header class="hero-tweet-head">
+                  <span class="hero-tweet-avatar">N</span>
+                  <div>
+                    <span class="hero-tweet-name">Naval Ravikant</span>
+                    <span class="hero-tweet-handle">@naval · May 31, 2018</span>
+                  </div>
+                </header>
+                <p class="hero-tweet-body">Seek wealth, not money or status. Wealth is having assets that earn while you sleep.</p>
+                <footer class="hero-tweet-foot">
+                  <span>Level 1 of ${TOTAL_LEVELS}</span>
+                  <span class="hero-tweet-reward">+${escapeHtml(perLevel)}</span>
+                </footer>
+              </article>
+            </div>
             <a class="hero-video" href="${escapeHtml(youtubeWatchUrl(fv.youtubeId))}" target="_blank" rel="noopener noreferrer">
               <img src="https://i.ytimg.com/vi/${escapeHtml(fv.youtubeId)}/hqdefault.jpg" alt="" loading="lazy" />
               <span class="hero-video-play">▶</span>
@@ -119,11 +144,21 @@ export function renderHomeScreen(opts: {
           </div>
         </header>
 
+        <div class="marquee" aria-hidden="true">
+          <div class="marquee-track">${marqueeRun}${marqueeRun}</div>
+        </div>
+
         <section class="stat-strip" aria-label="Quest at a glance">
           <div class="qstat"><span class="qstat-num">${TOTAL_LEVELS}</span><span class="qstat-label">tweets, ${TOTAL_LEVELS} levels</span></div>
           <div class="qstat"><span class="qstat-num">3h 36m</span><span class="qstat-label">of Naval, chaptered per level</span></div>
           <div class="qstat"><span class="qstat-num">${escapeHtml(perLevel)}</span><span class="qstat-label">earned per level cleared</span></div>
           <div class="qstat"><span class="qstat-num">$ · ₿</span><span class="qstat-label">cash out to fiat or crypto</span></div>
+        </section>
+
+        <section class="quest-path" aria-label="The 39-level path">
+          <h2 class="media-section-title">One tweet. One level. ${TOTAL_LEVELS} steps to the top.</h2>
+          <p class="media-section-lede">Every level unlocks the next tweet in the thread — with Naval’s own words guiding you through.</p>
+          <div class="path-grid">${pathChips}</div>
         </section>
 
         ${renderTopVideosGrid({ limit: 6 })}

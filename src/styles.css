@@ -739,6 +739,7 @@ body::before {
 /* ─── Hero ─── */
 
 .hero {
+  position: relative;
   display: grid;
   gap: 2.5rem;
   align-items: center;
@@ -749,6 +750,46 @@ body::before {
   .hero {
     grid-template-columns: 1.15fr 1fr;
     padding: 5rem 0 1rem;
+  }
+}
+
+.hero-glow {
+  position: absolute;
+  top: -20%;
+  right: -12%;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196, 165, 116, 0.16), transparent 62%);
+  filter: blur(20px);
+  pointer-events: none;
+  animation: glow-breathe 7s ease-in-out infinite alternate;
+}
+
+@keyframes glow-breathe {
+  from {
+    opacity: 0.65;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+.anim-up {
+  animation: hero-up 0.8s var(--ease) both;
+  animation-delay: calc(var(--d, 0) * 120ms);
+}
+
+@keyframes hero-up {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -772,6 +813,28 @@ body::before {
 .hero-title em {
   font-style: italic;
   color: var(--accent);
+}
+
+.shimmer {
+  background: linear-gradient(
+    100deg,
+    #c4a574 20%,
+    #f0dcb4 40%,
+    #c4a574 60%,
+    #a8875a 80%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: shimmer-slide 5s linear infinite;
+}
+
+@keyframes shimmer-slide {
+  to {
+    background-position: -220% center;
+  }
 }
 
 .hero-lede {
@@ -840,11 +903,17 @@ body::before {
 /* Hero right card stack */
 
 .hero-card {
+  position: relative;
   display: grid;
   gap: 1rem;
 }
 
+.hero-deck {
+  position: relative;
+}
+
 .hero-tweet {
+  position: relative;
   padding: 1.4rem 1.5rem;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
@@ -853,6 +922,25 @@ body::before {
     0 18px 50px rgba(0, 0, 0, 0.45),
     0 0 0 1px rgba(196, 165, 116, 0.06);
   transform: rotate(-1.2deg);
+  transition: transform 0.4s var(--ease);
+}
+
+.hero-deck:hover .hero-tweet:not(.hero-tweet--ghost) {
+  transform: rotate(0deg) translateY(-3px);
+}
+
+.hero-tweet--ghost {
+  position: absolute;
+  inset: 0;
+  transform: rotate(2.4deg) translate(10px, 8px);
+  opacity: 0.55;
+  background: linear-gradient(160deg, rgba(24, 23, 21, 0.9), rgba(14, 14, 13, 0.85));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.hero-tweet--ghost-2 {
+  transform: rotate(5deg) translate(22px, 18px);
+  opacity: 0.3;
 }
 
 .hero-tweet-head {
@@ -1014,6 +1102,163 @@ body::before {
 .landing-final-title em {
   font-style: italic;
   color: var(--accent);
+}
+
+.landing-final {
+  position: relative;
+}
+
+.landing-final::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  width: 30rem;
+  height: 16rem;
+  background: radial-gradient(ellipse, rgba(196, 165, 116, 0.12), transparent 65%);
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+/* ─── Glow button ─── */
+
+.btn-glow {
+  background: linear-gradient(135deg, #e8d5ae, #c4a574 55%, #a8875a);
+  color: #171410;
+  border: none;
+  font-weight: 600;
+  box-shadow:
+    0 0 0 1px rgba(196, 165, 116, 0.35),
+    0 8px 28px rgba(196, 165, 116, 0.22);
+  transition:
+    transform 0.25s var(--ease),
+    box-shadow 0.25s var(--ease);
+}
+
+.btn-glow:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(196, 165, 116, 0.5),
+    0 12px 36px rgba(196, 165, 116, 0.32);
+}
+
+/* ─── Tweet marquee ─── */
+
+.marquee {
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 0.9rem 0;
+  margin: 0 -1.25rem;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 2rem;
+  white-space: nowrap;
+  animation: marquee-roll 44s linear infinite;
+  will-change: transform;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-roll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-item {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-style: italic;
+  color: var(--ink-muted);
+}
+
+.marquee-star {
+  color: var(--accent);
+  font-size: 0.7rem;
+}
+
+/* ─── Quest path ─── */
+
+.quest-path {
+  text-align: center;
+}
+
+.quest-path .media-section-lede {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.path-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 44rem;
+  margin: 1.5rem auto 0;
+}
+
+.path-chip {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color 0.2s,
+    color 0.2s,
+    transform 0.2s var(--ease);
+}
+
+.path-chip:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+  transform: translateY(-2px);
+}
+
+.path-chip--done {
+  background: var(--accent-soft);
+  border-color: rgba(196, 165, 116, 0.45);
+  color: var(--accent);
+}
+
+.path-chip--now {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 14px rgba(196, 165, 116, 0.35);
+  animation: chip-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes chip-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(196, 165, 116, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(196, 165, 116, 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-up,
+  .shimmer,
+  .hero-glow,
+  .marquee-track,
+  .path-chip--now {
+    animation: none;
+  }
 }
 
 .landing-economy {
@@ -1223,6 +1468,16 @@ body::before {
   border-radius: var(--radius);
   overflow: hidden;
   background: rgba(19, 19, 18, 0.45);
+  transition:
+    transform 0.3s var(--ease),
+    border-color 0.3s,
+    box-shadow 0.3s var(--ease);
+}
+
+.media-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(196, 165, 116, 0.4);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(196, 165, 116, 0.08);
 }
 
 .media-card-thumb {
