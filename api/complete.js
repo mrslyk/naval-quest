@@ -7,6 +7,7 @@ import { getSlykConfig, slykPost, rewardAssetSymbol } from './lib/slyk.js';
 import { readSession } from './lib/session.js';
 import { levelRewardAmount } from './lib/economy.js';
 import { readBody } from './lib/http.js';
+import { savePlayerProgress } from './lib/store.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -64,6 +65,17 @@ export default async function handler(req, res) {
       amountLabel = `${levelRewardAmount()} ${rewardAssetSymbol()}`;
     }
 
+    const navAmount = Number(levelRewardAmount());
+    try {
+      await savePlayerProgress(userId, {
+        displayName: session?.name,
+        levelsCleared: levelNum,
+        navDelta: body.alreadyClaimed ? 0 : navAmount,
+      });
+    } catch {
+      /* stats best-effort */
+    }
+
     return res.status(200).json({
       ok: true,
       level: levelNum,
@@ -75,6 +87,15 @@ export default async function handler(req, res) {
     // Already completed is ok for resume play
     const msg = err.message || String(err);
     if (/already|completed|available/i.test(msg)) {
+      try {
+        await savePlayerProgress(userId, {
+          displayName: session?.name,
+          levelsCleared: levelNum,
+          navDelta: 0,
+        });
+      } catch {
+        /* stats best-effort */
+      }
       return res.status(200).json({
         ok: true,
         level: levelNum,

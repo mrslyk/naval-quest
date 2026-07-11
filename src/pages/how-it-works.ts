@@ -37,8 +37,8 @@ export function renderHowItWorksPage(_data: unknown, gameComplete: boolean): str
             </article>
             <article class="how-overview-card">
               <span class="how-overview-num">04</span>
-              <h2>Fund &amp; cash out</h2>
-              <p>Deposit via Stripe, PayPal, or Coinbase. After level ${TOTAL_LEVELS}, convert NAV → fiat/crypto and withdraw.</p>
+              <h2>Sponsor &amp; cash out</h2>
+              <p>Patrons fund via Stripe on this site. Players cash out <strong>BTC via Coinbase</strong> on Slyk after level ${TOTAL_LEVELS}.</p>
               ${
                 gameComplete
                   ? '<p class="page-lede page-lede--ok">Quest complete — cash out is unlocked.</p>'
@@ -49,9 +49,9 @@ export function renderHowItWorksPage(_data: unknown, gameComplete: boolean): str
 
           <div class="how-grid">
             <article class="how-card">
-              <h2 class="how-card-title">Add funds</h2>
-              <p>Deposit with <strong>Stripe</strong> (card), <strong>PayPal</strong>, or <strong>Coinbase</strong> (crypto). Money supports the reward pool.</p>
-              <button class="btn-text btn-text--link" type="button" id="how-goto-fund">Add funds →</button>
+              <h2 class="how-card-title">Sponsor the quest</h2>
+              <p>Patrons pay via <strong>Stripe Checkout</strong> (all enabled payment methods). Funds back the NAV prize pool.</p>
+              <button class="btn-text btn-text--link" type="button" id="how-goto-sponsor">Sponsor →</button>
             </article>
 
             <article class="how-card">
@@ -66,13 +66,13 @@ export function renderHowItWorksPage(_data: unknown, gameComplete: boolean): str
 
             <article class="how-card">
               <h2 class="how-card-title">Convert &amp; withdraw</h2>
-              <p>Exchange 1 NAV = $0.01 USD/USDC live on api.slyk.io. Withdraw via PayPal or Coinbase after the quest.</p>
+              <p>Slyk sets the live <strong>NAV/BTC</strong> rate. Convert, then withdraw BTC via Coinbase on naval.slyk.io.</p>
             </article>
           </div>
 
           <div class="how-media-block">
             ${renderPodcastPlatforms()}
-            ${renderTopVideosGrid({ compact: true, limit: 4 })}
+            ${renderTopVideosGrid({ compact: true })}
             ${renderBooksRow()}
           </div>
 

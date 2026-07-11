@@ -26,14 +26,7 @@ export interface EconomyMeta {
   rewardSymbol: string;
   levelReward: string;
   shop: ShopItem[];
-  fundRails: Array<{
-    id: string;
-    name: string;
-    kind: string;
-    code: string;
-    assetCode: string;
-    description: string;
-  }>;
+  sponsorTiers: Array<{ id: string; label: string; amountUsd: number; amountCents?: number }>;
   cashoutTargets: Array<{
     id: string;
     assetCode: string;
@@ -107,6 +100,59 @@ export async function logout(): Promise<void> {
   clearMeCache();
 }
 
+export interface GameStats {
+  sponsorshipTotalLabel: string;
+  navWonLabel: string;
+  btcWonLabel: string;
+  leaderboard: Array<{
+    rank: number;
+    displayName: string;
+    levelsCleared: number;
+    navWon: number;
+    btcWon: number;
+  }>;
+}
+
+export async function fetchGameStats(): Promise<GameStats> {
+  return api<GameStats>('/api/stats');
+}
+
+export async function syncServerProgress(data: {
+  levelsCleared?: number;
+  level?: number;
+  navDelta?: number;
+  btcDelta?: number;
+  displayName?: string;
+  recordLevelReward?: boolean;
+}) {
+  return api<{ ok: boolean; player: unknown }>('/api/progress', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function fetchServerProgress() {
+  return api<{
+    signedIn: boolean;
+    levelsCleared: number;
+    displayName?: string;
+    navWon?: number;
+    btcWon?: number;
+  }>('/api/progress');
+}
+
+export async function createSponsorCheckout(data: {
+  tierId: string;
+  customAmount?: number;
+  sponsorName?: string;
+  sponsorMessage?: string;
+}) {
+  return api<{ ok: boolean; url: string }>('/api/stripe/checkout', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function deposit(railId: string, amount: string) {
   return api<{
     ok: boolean;
@@ -132,14 +178,14 @@ export async function spend(itemId: string, level?: number) {
   });
 }
 
-export async function exchange(targetAsset: string, amount?: string) {
+export async function exchange(amount?: string) {
   return api<{
     ok: boolean;
     receivedLabel: string;
     nav: string;
   }>('/api/exchange', {
     method: 'POST',
-    body: JSON.stringify({ targetAsset, amount }),
+    body: JSON.stringify({ amount }),
   });
 }
 

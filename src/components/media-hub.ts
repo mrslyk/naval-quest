@@ -91,8 +91,8 @@ export function renderTopVideosGrid(opts: { compact?: boolean; limit?: number } 
 
   return `
     <section class="media-videos" aria-labelledby="videos-heading">
-      <h2 class="media-section-title" id="videos-heading">Top Naval videos</h2>
-      <p class="media-section-lede">The interviews and compilations that shaped the quest — watch before or while you play.</p>
+      <h2 class="media-section-title" id="videos-heading">Naval video library</h2>
+      <p class="media-section-lede">${videos.length} long-form interviews and podcast episodes — watch before or while you play.</p>
       <div class="media-grid${compact ? ' media-grid--compact' : ''}">
         ${videos.map((v) => renderVideoCard(v, compact)).join('')}
       </div>

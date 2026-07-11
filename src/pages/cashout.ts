@@ -7,10 +7,9 @@ import { MeResponse } from '../slyk/session';
 
 export function renderCashoutPage(me: MeResponse | null, progress: number): string {
   const symbol = me?.economy?.rewardSymbol ?? 'NAV';
-  const targets = me?.economy?.cashoutTargets ?? [];
-  const balances = me?.balances ?? [];
   const ready = progress >= TOTAL_LEVELS;
   const signedIn = Boolean(me?.user);
+  const navLabel = me?.navLabel ?? `0 ${symbol}`;
 
   return `
     <div class="screen screen--page">
@@ -19,20 +18,15 @@ export function renderCashoutPage(me: MeResponse | null, progress: number): stri
       <main class="page-main">
         <section class="page-section">
           <p class="page-kicker">Cash out</p>
-          <h1 class="page-title">Convert NAV &amp; withdraw</h1>
+          <h1 class="page-title">Convert ${escapeHtml(symbol)} → BTC</h1>
           <p class="page-lede">
-            1) Convert ${escapeHtml(symbol)} → USD, USDC, or BTC.<br />
-            2) Withdraw via PayPal / Coinbase rails (pending admin settlement when manual).
+            Slyk sets the live <strong>${escapeHtml(symbol)}/BTC</strong> rate. Step 1: convert NAV to BTC in your wallet.
+            Step 2: withdraw BTC via <strong>Coinbase</strong> on naval.slyk.io.
           </p>
+          <p class="how-note">Player wallet funding on Slyk is BTC-only. Patrons sponsor the game via Stripe on this site.</p>
 
           <div class="balance-chips">
-            ${
-              balances.length
-                ? balances
-                    .map((b) => `<span class="balance-chip">${escapeHtml(b.label)}</span>`)
-                    .join('')
-                : `<span class="balance-chip">No balances yet</span>`
-            }
+            <span class="balance-chip">${escapeHtml(navLabel)}</span>
           </div>
 
           ${
@@ -40,26 +34,20 @@ export function renderCashoutPage(me: MeResponse | null, progress: number): stri
               ? `<button type="button" class="btn-primary" id="btn-auth-signup">Sign in to cash out</button>`
               : `
             <section class="how-card">
-              <h2 class="how-card-title">Step 1 · Convert ${escapeHtml(symbol)}</h2>
+              <h2 class="how-card-title">Step 1 · Convert to BTC</h2>
               <form class="fund-form" id="exchange-form">
                 <label class="field">
-                  <span class="field-label">Amount (${escapeHtml(symbol)})</span>
+                  <span class="field-label">Amount (${escapeHtml(symbol)}, blank = all)</span>
                   <input class="field-input" name="amount" type="number" min="1" step="1" placeholder="All" />
-                </label>
-                <label class="field">
-                  <span class="field-label">To</span>
-                  <select class="field-input" name="targetAsset">
-                    ${targets.map((t) => `<option value="${escapeHtml(t.assetCode)}">${escapeHtml(t.label)}</option>`).join('')}
-                  </select>
                 </label>
                 <p class="field-error" id="exchange-error" hidden></p>
                 <p class="page-lede page-lede--ok" id="exchange-ok" hidden></p>
-                <button class="btn-secondary" type="submit">Convert</button>
+                <button class="btn-secondary" type="submit">Convert to BTC</button>
               </form>
             </section>
 
             <section class="how-card">
-              <h2 class="how-card-title">Step 2 · Withdraw</h2>
+              <h2 class="how-card-title">Step 2 · Withdraw BTC (Coinbase)</h2>
               ${
                 ready
                   ? ''
@@ -67,22 +55,16 @@ export function renderCashoutPage(me: MeResponse | null, progress: number): stri
               }
               <form class="fund-form" id="withdraw-form">
                 <label class="field">
-                  <span class="field-label">Asset</span>
-                  <select class="field-input" name="assetCode">
-                    ${targets.map((t) => `<option value="${escapeHtml(t.assetCode)}">${escapeHtml(t.label)}</option>`).join('')}
-                  </select>
-                </label>
-                <label class="field">
-                  <span class="field-label">Amount (blank = all)</span>
+                  <span class="field-label">BTC amount (blank = all)</span>
                   <input class="field-input" name="amount" type="number" min="0" step="any" />
                 </label>
                 <label class="field">
-                  <span class="field-label">Destination</span>
-                  <input class="field-input" name="destination" type="text" required placeholder="PayPal email or crypto address" />
+                  <span class="field-label">BTC wallet address</span>
+                  <input class="field-input" name="destination" type="text" required placeholder="Your Bitcoin address" />
                 </label>
                 <p class="field-error" id="withdraw-error" hidden></p>
                 <p class="page-lede page-lede--ok" id="withdraw-ok" hidden></p>
-                <button class="btn-primary" type="submit" ${ready ? '' : 'disabled'}>Request withdrawal</button>
+                <button class="btn-primary" type="submit" ${ready ? '' : 'disabled'}>Withdraw via Coinbase</button>
               </form>
             </section>
           `

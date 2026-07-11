@@ -37,6 +37,9 @@ function applyEnv(env: Record<string, string>) {
     'RESEND_API_KEY',
     'FUND_EMAIL_FROM',
     'FUND_SUPPORT_EMAIL',
+    'STRIPE_SECRET_KEY',
+    'STRIPE_PUBLISHABLE_KEY',
+    'STRIPE_WEBHOOK_SECRET',
   ];
   for (const key of keys) {
     if (env[key]) process.env[key] = env[key];

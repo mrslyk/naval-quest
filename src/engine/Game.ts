@@ -15,17 +15,21 @@ import {
   signup,
   login,
   logout,
-  deposit,
   spend,
   exchange,
   withdraw,
   clearMeCache,
+  fetchGameStats,
+  createSponsorCheckout,
+  fetchServerProgress,
+  GameStats,
 } from '../slyk/session';
-import { renderFundPage } from '../pages/fund';
+import { renderSponsorPage } from '../pages/sponsor';
 import { renderHowItWorksPage } from '../pages/how-it-works';
 import { renderCashoutPage } from '../pages/cashout';
+import { renderStatsBoard, renderSponsorThanks } from '../components/stats-board';
 
-type Screen = 'home' | 'fund' | 'how' | 'cashout' | 'level' | 'complete';
+type Screen = 'home' | 'sponsor' | 'how' | 'cashout' | 'level' | 'complete';
 
 export class Game {
   private root: HTMLElement;
@@ -35,11 +39,19 @@ export class Game {
   private me: MeResponse | null = null;
   private authMode: 'login' | 'signup' | null = null;
   private levelBoost: { hint?: string; reveal?: boolean } = {};
+  private gameStats: GameStats | null = null;
+  private statsLoading = true;
+  private sponsorBanner: string | null = null;
 
   constructor(root: HTMLElement) {
     this.root = root;
     this.currentLevel = loadProgress();
     if (this.currentLevel >= TOTAL_LEVELS) this.screen = 'complete';
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('sponsor') === 'thanks') {
+      this.sponsorBanner = 'thanks';
+      window.history.replaceState({}, '', window.location.pathname);
+    }
     void this.bootstrap();
   }
 
@@ -49,7 +61,28 @@ export class Game {
     } catch {
       this.me = null;
     }
+    try {
+      const server = await fetchServerProgress();
+      if (server.levelsCleared > this.currentLevel) {
+        this.currentLevel = server.levelsCleared;
+        saveProgress(this.currentLevel);
+      }
+    } catch {
+      /* optional */
+    }
+    void this.loadStats();
     this.render();
+  }
+
+  private async loadStats(): Promise<void> {
+    this.statsLoading = true;
+    try {
+      this.gameStats = await fetchGameStats();
+    } catch {
+      this.gameStats = null;
+    }
+    this.statsLoading = false;
+    if (this.screen === 'home') this.renderHome();
   }
 
   private go(screen: Screen): void {
@@ -69,7 +102,7 @@ export class Game {
   private bindNav(): void {
     bindTopNav(this.root, {
       onHome: () => this.go('home'),
-      onFund: () => this.go('fund'),
+      onSponsor: () => this.go('sponsor'),
       onHow: () => this.go('how'),
       onPlay: () => {
         this.screen = 'level';
@@ -154,8 +187,8 @@ export class Game {
       case 'home':
         this.renderHome();
         break;
-      case 'fund':
-        this.renderFund();
+      case 'sponsor':
+        this.renderSponsor();
         break;
       case 'how':
         this.renderHow();
@@ -174,8 +207,15 @@ export class Game {
 
   private renderHome(): void {
     this.root.innerHTML = this.withAuthModal(
-      renderHomeScreen({ saved: loadProgress(), me: this.me, loading: false })
+      renderHomeScreen({
+        saved: loadProgress(),
+        me: this.me,
+        loading: false,
+        statsHtml: renderStatsBoard(this.gameStats, this.statsLoading),
+        sponsorThanks: this.sponsorBanner === 'thanks' ? renderSponsorThanks() : '',
+      })
     );
+    this.sponsorBanner = null;
     this.bindNav();
     const startPlay = () => {
       this.screen = 'level';
@@ -186,7 +226,8 @@ export class Game {
     };
     this.root.querySelector('#btn-start')?.addEventListener('click', startPlay);
     this.root.querySelector('#btn-start-2')?.addEventListener('click', startPlay);
-    this.root.querySelector('#btn-fund-home')?.addEventListener('click', () => this.go('fund'));
+    this.root.querySelector('#btn-sponsor-home')?.addEventListener('click', () => this.go('sponsor'));
+    this.root.querySelector('#btn-sponsor-hero')?.addEventListener('click', () => this.go('sponsor'));
     this.root.querySelector('#btn-cashout-home')?.addEventListener('click', () => this.go('cashout'));
     this.root.querySelector('#btn-how-home')?.addEventListener('click', () => this.go('how'));
     this.root.querySelector('#btn-reset')?.addEventListener('click', () => {
@@ -197,30 +238,37 @@ export class Game {
     bindMediaHub(this.root);
   }
 
-  private renderFund(): void {
-    this.root.innerHTML = this.withAuthModal(renderFundPage(this.me));
+  private renderSponsor(): void {
+    const tiers = this.me?.economy?.sponsorTiers ?? [
+      { id: 'supporter', label: 'Supporter', amountUsd: 100 },
+      { id: 'champion', label: 'Champion', amountUsd: 500 },
+      { id: 'benefactor', label: 'Benefactor', amountUsd: 2500 },
+      { id: 'patron', label: 'Patron', amountUsd: 10000 },
+      { id: 'visionary', label: 'Visionary', amountUsd: 25000 },
+    ];
+    this.root.innerHTML = this.withAuthModal(renderSponsorPage({ tiers }));
     this.bindNav();
-    this.root.querySelector('#deposit-form')?.addEventListener('submit', async (e) => {
+    this.root.querySelector('#sponsor-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target as HTMLFormElement);
-      const err = this.root.querySelector('#deposit-error') as HTMLElement | null;
-      const ok = this.root.querySelector('#deposit-ok') as HTMLElement | null;
+      const err = this.root.querySelector('#sponsor-error') as HTMLElement | null;
       try {
-        const result = await deposit(String(fd.get('railId')), String(fd.get('amount')));
-        if (result.redirectUrl) {
-          window.location.href = result.redirectUrl;
+        const tierId = String(fd.get('tierId') || '');
+        const customAmount = fd.get('customAmount') ? Number(fd.get('customAmount')) : undefined;
+        const result = await createSponsorCheckout({
+          tierId,
+          customAmount,
+          sponsorName: String(fd.get('sponsorName') || ''),
+          sponsorMessage: String(fd.get('sponsorMessage') || ''),
+        });
+        if (result.url) {
+          window.location.href = result.url;
           return;
         }
-        if (ok) {
-          ok.hidden = false;
-          ok.textContent = result.message || 'Deposit submitted.';
-        }
-        if (err) err.hidden = true;
-        await this.refreshMe();
       } catch (ex) {
         if (err) {
           err.hidden = false;
-          err.textContent = ex instanceof Error ? ex.message : 'Deposit failed';
+          err.textContent = ex instanceof Error ? ex.message : 'Checkout failed';
         }
       }
     });
@@ -230,7 +278,7 @@ export class Game {
     const gameComplete = loadProgress() >= TOTAL_LEVELS;
     this.root.innerHTML = this.withAuthModal(renderHowItWorksPage(null, gameComplete));
     this.bindNav();
-    this.root.querySelector('#how-goto-fund')?.addEventListener('click', () => this.go('fund'));
+    this.root.querySelector('#how-goto-sponsor')?.addEventListener('click', () => this.go('sponsor'));
     this.root.querySelector('#how-play')?.addEventListener('click', () => {
       this.screen = 'level';
       this.currentLevel = loadProgress();
@@ -252,7 +300,7 @@ export class Game {
       const ok = this.root.querySelector('#exchange-ok') as HTMLElement | null;
       try {
         const amount = String(fd.get('amount') || '');
-        const result = await exchange(String(fd.get('targetAsset')), amount || undefined);
+        const result = await exchange(amount || undefined);
         if (ok) {
           ok.hidden = false;
           ok.textContent = `Converted → ${result.receivedLabel}`;
@@ -276,7 +324,7 @@ export class Game {
       try {
         const amount = String(fd.get('amount') || '');
         const result = await withdraw({
-          assetCode: String(fd.get('assetCode')),
+          assetCode: 'btc',
           amount: amount || undefined,
           destination: String(fd.get('destination')),
         });

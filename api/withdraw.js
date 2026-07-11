@@ -24,6 +24,16 @@ export default async function handler(req, res) {
   const body = await readBody(req);
   const { assetCode, amount, destination, force } = body;
 
+  const target = CASHOUT_TARGETS.find((t) => t.assetCode === assetCode) || CASHOUT_TARGETS[0];
+  if (assetCode && assetCode !== 'btc') {
+    return res.status(400).json({ error: 'Withdrawals are BTC-only via Coinbase on Slyk' });
+  }
+  if (!destination?.trim()) {
+    return res.status(400).json({
+      error: 'BTC wallet address required for Coinbase withdrawal',
+    });
+  }
+
   // Game rule: finish all levels before cashout (unless force for testing).
   if (!force) {
     const progress = loadProgress(req);
@@ -34,14 +44,6 @@ export default async function handler(req, res) {
         required: TOTAL_LEVELS,
       });
     }
-  }
-
-  const target = CASHOUT_TARGETS.find((t) => t.assetCode === assetCode);
-  if (!target) return res.status(400).json({ error: 'Choose usd, usdc, or btc' });
-  if (!destination?.trim()) {
-    return res.status(400).json({
-      error: 'Destination required (PayPal email, wallet address, etc.)',
-    });
   }
 
   const balances = await getWalletBalances(session.primaryWalletId);

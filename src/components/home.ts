@@ -56,8 +56,10 @@ export function renderHomeScreen(opts: {
   saved: number;
   me: MeResponse | null;
   loading: boolean;
+  statsHtml?: string;
+  sponsorThanks?: string;
 }): string {
-  const { saved, me, loading } = opts;
+  const { saved, me, loading, statsHtml = '', sponsorThanks = '' } = opts;
   const symbol = me?.economy?.rewardSymbol ?? 'NAV';
   const perLevel = me?.economy?.levelReward
     ? `${me.economy.levelReward} ${symbol}`
@@ -104,6 +106,7 @@ export function renderHomeScreen(opts: {
             </p>
             <div class="hero-cta anim-up" style="--d:3">
               <button class="btn-primary btn-primary--lg btn-glow" id="btn-start" type="button">${escapeHtml(resumeLabel)} →</button>
+              <button class="btn-secondary btn-secondary--lg" id="btn-sponsor-hero" type="button">Sponsor</button>
               <button class="btn-ghost" id="btn-how-home" type="button">How it works</button>
             </div>
             ${
@@ -152,7 +155,7 @@ export function renderHomeScreen(opts: {
           <div class="qstat"><span class="qstat-num">${TOTAL_LEVELS}</span><span class="qstat-label">tweets, ${TOTAL_LEVELS} levels</span></div>
           <div class="qstat"><span class="qstat-num">3h 36m</span><span class="qstat-label">of Naval, chaptered per level</span></div>
           <div class="qstat"><span class="qstat-num">${escapeHtml(perLevel)}</span><span class="qstat-label">earned per level cleared</span></div>
-          <div class="qstat"><span class="qstat-num">$ · ₿</span><span class="qstat-label">cash out to fiat or crypto</span></div>
+          <div class="qstat"><span class="qstat-num">₿</span><span class="qstat-label">BTC cashout via Coinbase</span></div>
         </section>
 
         <section class="quest-path" aria-label="The 39-level path">
@@ -161,16 +164,20 @@ export function renderHomeScreen(opts: {
           <div class="path-grid">${pathChips}</div>
         </section>
 
-        ${renderTopVideosGrid({ limit: 6 })}
+        ${renderTopVideosGrid()}
         ${renderPodcastPlatforms()}
 
+        ${sponsorThanks}
+
+        ${statsHtml}
+
         <section class="landing-economy" aria-label="Game economy">
-          <h2 class="media-section-title">Fund · Play · Earn · Cash out</h2>
-          <p class="media-section-lede">A real ${escapeHtml(symbol)} wallet on Slyk — not points on a leaderboard.</p>
+          <h2 class="media-section-title">Sponsor · Play · Earn · Cash out</h2>
+          <p class="media-section-lede">Patrons fund via Stripe. Players earn NAV on Slyk. Cash out in BTC via Coinbase.</p>
           <ol class="flywheel-steps flywheel-steps--landing">
             <li class="flywheel-step">
               <span class="flywheel-icon">①</span>
-              <div><strong>Add funds</strong><p>Stripe, PayPal, or Coinbase support the reward pool.</p></div>
+              <div><strong>Sponsor the quest</strong><p>Stripe checkout — all payment methods. Backs the prize pool.</p></div>
             </li>
             <li class="flywheel-step">
               <span class="flywheel-icon">②</span>
@@ -182,11 +189,11 @@ export function renderHomeScreen(opts: {
             </li>
             <li class="flywheel-step">
               <span class="flywheel-icon">④</span>
-              <div><strong>Cash out</strong><p>Convert to USD / USDC / BTC after level ${TOTAL_LEVELS}.</p></div>
+              <div><strong>Cash out BTC</strong><p>Convert NAV → BTC on Slyk, withdraw via Coinbase after level ${TOTAL_LEVELS}.</p></div>
             </li>
           </ol>
           <div class="landing-economy-actions">
-            <button class="btn-secondary" id="btn-fund-home" type="button">Add funds</button>
+            <button class="btn-secondary btn-secondary--lg" id="btn-sponsor-home" type="button">Sponsor Naval Quest</button>
             <button class="btn-text" id="btn-cashout-home" type="button">Cash out</button>
             ${saved > 0 ? '<button class="btn-text" id="btn-reset" type="button">Start over</button>' : ''}
           </div>

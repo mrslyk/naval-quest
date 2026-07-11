@@ -1,5 +1,5 @@
 /**
- * Convert NAV → USD / USDC / BTC for cashout.
+ * Convert NAV → BTC for cashout (Slyk live rate).
  */
 import { requireSession } from './lib/session.js';
 import { readBody } from './lib/http.js';
@@ -12,6 +12,7 @@ import {
   rewardAssetCode,
   rewardAssetSymbol,
 } from './lib/slyk.js';
+import { savePlayerProgress } from './lib/store.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -19,11 +20,9 @@ export default async function handler(req, res) {
   const session = requireSession(req, res);
   if (!session) return;
 
-  const { targetAsset, amount } = await readBody(req);
-  const target = CASHOUT_TARGETS.find((t) => t.assetCode === targetAsset);
-  if (!target) {
-    return res.status(400).json({ error: 'Choose usd, usdc, or btc' });
-  }
+  const { amount } = await readBody(req);
+  const target = CASHOUT_TARGETS[0];
+  const targetAsset = target.assetCode;
 
   const reward = rewardAssetCode();
   const balances = await getWalletBalances(session.primaryWalletId);
@@ -38,13 +37,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const rate = await slykGet(`/rates/${reward}/${target.assetCode}`);
+    const rate = await slykGet(`/rates/${reward}/${targetAsset}`);
     const quoteAmount = (spend * Number(rate.rate)).toFixed(8);
 
     const tx = await slykPost('/transactions/exchange', {
       baseAmount: String(spend),
       baseAssetCode: reward,
-      quoteAssetCode: target.assetCode,
+      quoteAssetCode: targetAsset,
       rate: rate.rate,
       walletId: session.primaryWalletId,
       code: 'order',
@@ -60,12 +59,21 @@ export default async function handler(req, res) {
       }
     }
 
+    try {
+      await savePlayerProgress(session.userId, {
+        displayName: session.name,
+        btcDelta: Number(quoteAmount),
+      });
+    } catch {
+      /* stats best-effort */
+    }
+
     const next = await getWalletBalances(session.primaryWalletId);
     return res.status(200).json({
       ok: true,
       converted: spend,
       received: quoteAmount,
-      receivedLabel: `${quoteAmount} ${target.assetCode.toUpperCase()}`,
+      receivedLabel: `${quoteAmount} ${targetAsset.toUpperCase()}`,
       rate: rate.rate,
       transactionId: tx.id,
       balances: next,

@@ -1,5 +1,5 @@
 /**
- * Naval Quest economy: shop items, fund rails, cashout targets.
+ * Naval Quest economy — shop, sponsor tiers, BTC cashout via Coinbase on Slyk.
  */
 
 import { rewardAssetCode, rewardAssetSymbol } from './slyk.js';
@@ -28,37 +28,24 @@ export const SHOP_ITEMS = {
   },
 };
 
-export const FUND_RAILS = [
-  {
-    id: 'stripe',
-    name: 'Card (Stripe)',
-    kind: 'fiat',
-    code: 'card:stripe',
-    assetCode: 'usd',
-    description: 'Deposit USD with a credit or debit card.',
-  },
-  {
-    id: 'paypal',
-    name: 'PayPal',
-    kind: 'fiat',
-    code: 'apm:paypal',
-    assetCode: 'usd',
-    description: 'Deposit USD via PayPal.',
-  },
-  {
-    id: 'coinbase',
-    name: 'Coinbase',
-    kind: 'crypto',
-    code: 'crypto:coinbase',
-    assetCode: 'usdc',
-    description: 'Deposit USDC / crypto via Coinbase.',
-  },
+/** Patron sponsorship tiers (USD) — Stripe Checkout on navalgame.netlify.app */
+export const SPONSOR_TIERS = [
+  { id: 'supporter', label: 'Supporter', amountUsd: 100, amountCents: 10_000 },
+  { id: 'champion', label: 'Champion', amountUsd: 500, amountCents: 50_000 },
+  { id: 'benefactor', label: 'Benefactor', amountUsd: 2_500, amountCents: 250_000 },
+  { id: 'patron', label: 'Patron', amountUsd: 10_000, amountCents: 1_000_000 },
+  { id: 'visionary', label: 'Visionary', amountUsd: 25_000, amountCents: 2_500_000 },
 ];
 
+/** Player cashout: NAV → BTC only, withdraw via Coinbase on Slyk */
 export const CASHOUT_TARGETS = [
-  { id: 'usd', assetCode: 'usd', label: 'USD (fiat)', withdrawCode: 'manual:paypal', rail: 'paypal' },
-  { id: 'usdc', assetCode: 'usdc', label: 'USDC (crypto)', withdrawCode: 'manual:usdc', rail: 'coinbase' },
-  { id: 'btc', assetCode: 'btc', label: 'BTC (crypto)', withdrawCode: 'manual:btc', rail: 'coinbase' },
+  {
+    id: 'btc',
+    assetCode: 'btc',
+    label: 'BTC (Coinbase)',
+    withdrawCode: 'crypto:coinbase',
+    rail: 'coinbase',
+  },
 ];
 
 export function levelRewardAmount() {
@@ -74,7 +61,7 @@ export function economyMeta() {
       ...item,
       priceLabel: `${item.price} ${rewardAssetSymbol()}`,
     })),
-    fundRails: FUND_RAILS,
+    sponsorTiers: SPONSOR_TIERS,
     cashoutTargets: CASHOUT_TARGETS,
   };
 }
