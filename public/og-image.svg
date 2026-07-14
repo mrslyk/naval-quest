@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#2a2418"/>
+      <stop offset="100%" stop-color="#0c0c0b"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d4b88a"/>
+      <stop offset="100%" stop-color="#a88452"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect x="80" y="80" width="1040" height="470" rx="28" stroke="rgba(196,165,116,0.25)" stroke-width="2"/>
+  <text x="600" y="270" text-anchor="middle" fill="#eceae3" font-family="Georgia, 'Times New Roman', serif" font-size="92" letter-spacing="-1">Naval Quest</text>
+  <text x="600" y="340" text-anchor="middle" fill="#c4a574" font-family="Arial, sans-serif" font-size="34" letter-spacing="4">PLAY TO EARN NAV</text>
+  <text x="600" y="410" text-anchor="middle" fill="#9b9890" font-family="Arial, sans-serif" font-size="28">39 levels · Sponsor · Cash out in BTC</text>
+  <rect x="470" y="455" width="260" height="6" rx="3" fill="url(#gold)" opacity="0.85"/>
+</svg>
