@@ -27,9 +27,10 @@ import {
 import { renderSponsorPage } from '../pages/sponsor';
 import { renderHowItWorksPage } from '../pages/how-it-works';
 import { renderCashoutPage } from '../pages/cashout';
+import { renderVideosPage } from '../pages/videos';
 import { renderStatsBoard, renderSponsorThanks } from '../components/stats-board';
 
-type Screen = 'home' | 'sponsor' | 'how' | 'cashout' | 'level' | 'complete';
+type Screen = 'home' | 'sponsor' | 'how' | 'videos' | 'cashout' | 'level' | 'complete';
 
 export class Game {
   private root: HTMLElement;
@@ -102,8 +103,6 @@ export class Game {
   private bindNav(): void {
     bindTopNav(this.root, {
       onHome: () => this.go('home'),
-      onSponsor: () => this.go('sponsor'),
-      onHow: () => this.go('how'),
       onPlay: () => {
         this.screen = 'level';
         this.currentLevel = loadProgress();
@@ -111,6 +110,9 @@ export class Game {
         this.levelBoost = {};
         this.render();
       },
+      onVideos: () => this.go('videos'),
+      onSponsor: () => this.go('sponsor'),
+      onHow: () => this.go('how'),
     });
     this.root.querySelector('#nav-cashout')?.addEventListener('click', () => this.go('cashout'));
     this.bindAuthChrome();
@@ -193,6 +195,9 @@ export class Game {
       case 'how':
         this.renderHow();
         break;
+      case 'videos':
+        this.renderVideos();
+        break;
       case 'cashout':
         this.renderCashout();
         break;
@@ -229,12 +234,17 @@ export class Game {
     this.root.querySelector('#btn-sponsor-home')?.addEventListener('click', () => this.go('sponsor'));
     this.root.querySelector('#btn-sponsor-hero')?.addEventListener('click', () => this.go('sponsor'));
     this.root.querySelector('#btn-cashout-home')?.addEventListener('click', () => this.go('cashout'));
-    this.root.querySelector('#btn-how-home')?.addEventListener('click', () => this.go('how'));
+    this.root.querySelector('#btn-videos-home')?.addEventListener('click', () => this.go('videos'));
     this.root.querySelector('#btn-reset')?.addEventListener('click', () => {
       resetProgress();
       this.currentLevel = 0;
       this.renderHome();
     });
+  }
+
+  private renderVideos(): void {
+    this.root.innerHTML = this.withAuthModal(renderVideosPage());
+    this.bindNav();
     bindMediaHub(this.root);
   }
 
@@ -286,7 +296,8 @@ export class Game {
       this.render();
     });
     this.root.querySelector('#how-goto-home')?.addEventListener('click', () => this.go('home'));
-    bindMediaHub(this.root);
+    this.root.querySelector('#how-goto-videos')?.addEventListener('click', () => this.go('videos'));
+    this.root.querySelector('#how-goto-videos-2')?.addEventListener('click', () => this.go('videos'));
   }
 
   private renderCashout(): void {

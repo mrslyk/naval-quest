@@ -3,8 +3,8 @@ import { escapeHtml } from '../utils';
 import { renderSlykDock } from './ui';
 import { renderTopNav } from './nav';
 import { renderWalletBar } from './wallet-bar';
-import { renderPodcastPlatforms, renderTopVideosGrid, renderBooksRow } from './media-hub';
-import { FEATURED_VIDEO, youtubeWatchUrl } from '../data/media';
+import { renderGamePreview } from './game-preview';
+import { renderHowFlowAnimation } from './how-flow';
 import { LevelRewardResult } from '../slyk/bridge';
 import { MeResponse } from '../slyk/session';
 
@@ -64,23 +64,7 @@ export function renderHomeScreen(opts: {
   const perLevel = me?.economy?.levelReward
     ? `${me.economy.levelReward} ${symbol}`
     : `10 ${symbol}`;
-  const resumeLabel = saved > 0 ? `Resume · Level ${saved + 1}` : 'Play the quest';
-  const progressPct = Math.round((saved / TOTAL_LEVELS) * 100);
-  const fv = FEATURED_VIDEO;
-
-  const marqueeQuotes = [
-    'Seek wealth, not money or status',
-    'Play long-term games with long-term people',
-    'Learn to sell. Learn to build.',
-    'Code and media are permissionless leverage',
-    'All the returns in life come from compound interest',
-    'Specific knowledge feels like play to you',
-    'Escape competition through authenticity',
-    'Productize yourself',
-  ];
-  const marqueeRun = marqueeQuotes
-    .map((q) => `<span class="marquee-item">${escapeHtml(q)}</span><span class="marquee-star" aria-hidden="true">✦</span>`)
-    .join('');
+  const resumeLabel = saved > 0 ? `Resume level ${saved + 1}` : 'Start playing';
 
   const pathChips = Array.from({ length: TOTAL_LEVELS }, (_, i) => {
     const n = i + 1;
@@ -93,117 +77,52 @@ export function renderHomeScreen(opts: {
       ${renderTopNav('home')}
       ${renderWalletBar(me)}
 
-      <div class="landing">
-
-        <header class="hero">
-          <div class="hero-glow" aria-hidden="true"></div>
-          <div class="hero-copy">
-            <p class="hero-kicker anim-up" style="--d:0">Slyk × Naval Ravikant</p>
-            <h1 class="hero-title anim-up" style="--d:1">Get rich<br /><em class="shimmer">without getting lucky.</em></h1>
-            <p class="hero-lede anim-up" style="--d:2">
-              Naval’s legendary tweetstorm, turned into a game. ${TOTAL_LEVELS} levels.
-              Real podcast clips. Real ${escapeHtml(symbol)} in a real wallet — cash out when you finish.
+      <div class="landing landing--bright">
+        <header class="home-hero">
+          <div class="home-hero-copy">
+            <p class="home-hero-kicker">Play · Learn · Earn</p>
+            <h1 class="home-hero-title">Naval’s tweetstorm,<br />turned into a game.</h1>
+            <p class="home-hero-lede">
+              ${TOTAL_LEVELS} interactive levels through <em>How to Get Rich</em>.
+              Clear puzzles, earn <strong>${escapeHtml(symbol)}</strong>, cash out in BTC.
             </p>
-            <div class="hero-cta anim-up" style="--d:3">
-              <button class="btn-primary btn-primary--lg btn-glow" id="btn-start" type="button">${escapeHtml(resumeLabel)} →</button>
-              <button class="btn-secondary btn-secondary--lg" id="btn-sponsor-hero" type="button">Sponsor</button>
-              <button class="btn-ghost" id="btn-how-home" type="button">How it works</button>
+            <div class="home-hero-actions">
+              <button class="btn-secondary" id="btn-sponsor-hero" type="button">Sponsor</button>
+              <button class="btn-ghost" id="btn-videos-home" type="button">Watch Naval →</button>
             </div>
-            ${
-              saved > 0
-                ? `<div class="hero-progress anim-up" style="--d:4" role="progressbar" aria-valuenow="${saved}" aria-valuemin="0" aria-valuemax="${TOTAL_LEVELS}">
-                    <div class="hero-progress-track"><div class="hero-progress-fill" style="width:${progressPct}%"></div></div>
-                    <span class="hero-progress-label">${saved} / ${TOTAL_LEVELS} tweets cleared</span>
-                  </div>`
-                : ''
-            }
             ${loading ? '<p class="home-loading">Loading wallet…</p>' : ''}
           </div>
-
-          <div class="hero-card anim-up" style="--d:2" aria-hidden="false">
-            <div class="hero-deck">
-              <article class="hero-tweet hero-tweet--ghost hero-tweet--ghost-2" aria-hidden="true"></article>
-              <article class="hero-tweet hero-tweet--ghost" aria-hidden="true"></article>
-              <article class="hero-tweet">
-                <header class="hero-tweet-head">
-                  <span class="hero-tweet-avatar">N</span>
-                  <div>
-                    <span class="hero-tweet-name">Naval Ravikant</span>
-                    <span class="hero-tweet-handle">@naval · May 31, 2018</span>
-                  </div>
-                </header>
-                <p class="hero-tweet-body">Seek wealth, not money or status. Wealth is having assets that earn while you sleep.</p>
-                <footer class="hero-tweet-foot">
-                  <span>Level 1 of ${TOTAL_LEVELS}</span>
-                  <span class="hero-tweet-reward">+${escapeHtml(perLevel)}</span>
-                </footer>
-              </article>
-            </div>
-            <a class="hero-video" href="${escapeHtml(youtubeWatchUrl(fv.youtubeId))}" target="_blank" rel="noopener noreferrer">
-              <img src="https://i.ytimg.com/vi/${escapeHtml(fv.youtubeId)}/hqdefault.jpg" alt="" loading="lazy" />
-              <span class="hero-video-play">▶</span>
-              <span class="hero-video-label">${escapeHtml(fv.title)} · ${escapeHtml(fv.duration)}</span>
-            </a>
-          </div>
+          ${renderGamePreview({ saved, perLevel, resumeLabel })}
         </header>
 
-        <div class="marquee" aria-hidden="true">
-          <div class="marquee-track">${marqueeRun}${marqueeRun}</div>
-        </div>
+        ${renderHowFlowAnimation(symbol)}
 
-        <section class="stat-strip" aria-label="Quest at a glance">
-          <div class="qstat"><span class="qstat-num">${TOTAL_LEVELS}</span><span class="qstat-label">tweets, ${TOTAL_LEVELS} levels</span></div>
-          <div class="qstat"><span class="qstat-num">3h 36m</span><span class="qstat-label">of Naval, chaptered per level</span></div>
-          <div class="qstat"><span class="qstat-num">${escapeHtml(perLevel)}</span><span class="qstat-label">earned per level cleared</span></div>
-          <div class="qstat"><span class="qstat-num">₿</span><span class="qstat-label">BTC cashout via Coinbase</span></div>
+        <section class="home-stats-wrap">
+          ${sponsorThanks}
+          ${statsHtml}
         </section>
 
-        <section class="quest-path" aria-label="The 39-level path">
-          <h2 class="media-section-title">One tweet. One level. ${TOTAL_LEVELS} steps to the top.</h2>
-          <p class="media-section-lede">Every level unlocks the next tweet in the thread — with Naval’s own words guiding you through.</p>
+        <section class="home-path" aria-label="Quest progress">
+          <h2 class="section-title">The ${TOTAL_LEVELS}-level path</h2>
+          <p class="section-lede">One tweet per level — from “Seek wealth” to “Productize yourself.”</p>
           <div class="path-grid">${pathChips}</div>
         </section>
 
-        ${renderTopVideosGrid()}
-        ${renderPodcastPlatforms()}
-
-        ${sponsorThanks}
-
-        ${statsHtml}
-
-        <section class="landing-economy" aria-label="Game economy">
-          <h2 class="media-section-title">Sponsor · Play · Earn · Cash out</h2>
-          <p class="media-section-lede">Patrons fund via Stripe. Players earn NAV on Slyk. Cash out in BTC via Coinbase.</p>
-          <ol class="flywheel-steps flywheel-steps--landing">
-            <li class="flywheel-step">
-              <span class="flywheel-icon">①</span>
-              <div><strong>Sponsor the quest</strong><p>Stripe checkout — all payment methods. Backs the prize pool.</p></div>
-            </li>
-            <li class="flywheel-step">
-              <span class="flywheel-icon">②</span>
-              <div><strong>Earn ${escapeHtml(symbol)}</strong><p>${escapeHtml(perLevel)} per level cleared via Slyk tasks.</p></div>
-            </li>
-            <li class="flywheel-step">
-              <span class="flywheel-icon">③</span>
-              <div><strong>Spend in-game</strong><p>Hints, reveals, and skips cost ${escapeHtml(symbol)}.</p></div>
-            </li>
-            <li class="flywheel-step">
-              <span class="flywheel-icon">④</span>
-              <div><strong>Cash out BTC</strong><p>Convert NAV → BTC on Slyk, withdraw via Coinbase after level ${TOTAL_LEVELS}.</p></div>
-            </li>
-          </ol>
-          <div class="landing-economy-actions">
-            <button class="btn-secondary btn-secondary--lg" id="btn-sponsor-home" type="button">Sponsor Naval Quest</button>
+        <section class="home-sponsor-strip">
+          <div class="home-sponsor-copy">
+            <h2 class="section-title">Fund the prize pool</h2>
+            <p class="section-lede">Patrons sponsor via Stripe. Players earn ${escapeHtml(symbol)} as they learn.</p>
+          </div>
+          <div class="home-sponsor-actions">
+            <button class="btn-primary" id="btn-sponsor-home" type="button">Sponsor Naval Quest</button>
             <button class="btn-text" id="btn-cashout-home" type="button">Cash out</button>
             ${saved > 0 ? '<button class="btn-text" id="btn-reset" type="button">Start over</button>' : ''}
           </div>
         </section>
 
-        ${renderBooksRow()}
-
-        <section class="landing-final">
-          <h2 class="landing-final-title">Wealth is assets that earn<br /><em>while you sleep.</em></h2>
-          <button class="btn-primary btn-primary--lg" id="btn-start-2" type="button">${escapeHtml(resumeLabel)} →</button>
+        <section class="home-final">
+          <h2 class="home-final-title">Wealth is assets that earn while you sleep.</h2>
+          <button class="btn-primary btn-primary--xl" id="btn-start-2" type="button">${escapeHtml(resumeLabel)} →</button>
         </section>
       </div>
       ${renderSlykDock()}
