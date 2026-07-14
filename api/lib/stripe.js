@@ -11,11 +11,24 @@ export function getStripe() {
 }
 
 export function gameOrigin() {
-  return (
+  const fallback = 'https://navalgame.netlify.app';
+  const raw = String(
     process.env.NAVAL_GAME_ORIGIN ||
-    process.env.SLYK_PAYSPACE_ORIGIN ||
-    'https://navalgame.netlify.app'
-  ).replace(/\/$/, '');
+      process.env.SLYK_PAYSPACE_ORIGIN ||
+      fallback
+  ).trim();
+
+  for (const candidate of [raw, raw.match(/https?:\/\/[^\s]+/)?.[0]]) {
+    if (!candidate) continue;
+    try {
+      const u = new URL(candidate.replace(/\/$/, ''));
+      if (u.protocol === 'http:' || u.protocol === 'https:') return u.origin;
+    } catch {
+      /* try next */
+    }
+  }
+
+  return fallback;
 }
 
 export function formatUsd(cents) {
