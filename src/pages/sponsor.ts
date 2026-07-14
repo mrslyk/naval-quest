@@ -62,7 +62,7 @@ export function renderSponsorPage(opts: {
 
             <p class="field-error" id="sponsor-error" hidden></p>
             <button class="btn-primary btn-primary--lg" type="submit">Continue to secure checkout →</button>
-            <p class="how-note">Stripe Checkout — cards, Apple Pay, Google Pay, Link, bank transfer, and all methods enabled on your Stripe account.</p>
+            <p class="how-note">Stripe Checkout — cards, Apple Pay, Google Pay, Link, bank transfer, and all methods enabled in your Stripe dashboard.</p>
           </form>
         </section>
       </main>
