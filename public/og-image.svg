@@ -1,10 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
-  <rect width="1200" height="630" fill="#f6f5f1"/>
-  <rect x="80" y="80" width="1040" height="470" rx="28" fill="#ffffff" stroke="#e5e3dd" stroke-width="2"/>
-  <rect x="140" y="160" width="420" height="280" rx="16" fill="#f6f5f1" stroke="#e5e3dd"/>
-  <rect x="620" y="180" width="420" height="48" rx="10" fill="#eceae4"/>
-  <rect x="620" y="250" width="320" height="48" rx="10" fill="#1a56db" opacity="0.15"/>
-  <rect x="620" y="320" width="420" height="48" rx="10" fill="#eceae4"/>
-  <text x="600" y="120" text-anchor="middle" fill="#1a1917" font-family="Georgia, serif" font-size="72">Naval Quest</text>
-  <text x="600" y="520" text-anchor="middle" fill="#1a56db" font-family="Arial, sans-serif" font-size="28" font-weight="600">Play · Learn · Earn NAV</text>
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <text x="600" y="200" text-anchor="middle" fill="#1a1a1b" font-family="Helvetica, Arial, sans-serif" font-size="72" font-weight="700" letter-spacing="6">NAVAL QUEST</text>
+  <g transform="translate(360, 260)">
+    <rect x="0" y="0" width="72" height="72" fill="#6aaa64"/>
+    <text x="36" y="48" text-anchor="middle" fill="#fff" font-family="Helvetica, Arial, sans-serif" font-size="36" font-weight="700">W</text>
+    <rect x="84" y="0" width="72" height="72" fill="#c9b458"/>
+    <text x="120" y="48" text-anchor="middle" fill="#fff" font-family="Helvetica, Arial, sans-serif" font-size="36" font-weight="700">E</text>
+    <rect x="168" y="0" width="72" height="72" fill="#787c7e"/>
+    <text x="204" y="48" text-anchor="middle" fill="#fff" font-family="Helvetica, Arial, sans-serif" font-size="36" font-weight="700">A</text>
+    <rect x="252" y="0" width="72" height="72" fill="#6aaa64"/>
+    <text x="288" y="48" text-anchor="middle" fill="#fff" font-family="Helvetica, Arial, sans-serif" font-size="36" font-weight="700">L</text>
+    <rect x="336" y="0" width="72" height="72" fill="#787c7e"/>
+    <text x="372" y="48" text-anchor="middle" fill="#fff" font-family="Helvetica, Arial, sans-serif" font-size="36" font-weight="700">T</text>
+    <rect x="420" y="0" width="72" height="72" fill="#6aaa64"/>
+    <text x="456" y="48" text-anchor="middle" fill="#fff" font-family="Helvetica, Arial, sans-serif" font-size="36" font-weight="700">H</text>
+  </g>
+  <text x="600" y="420" text-anchor="middle" fill="#565758" font-family="Helvetica, Arial, sans-serif" font-size="28">39 levels · Earn NAV · Cash out BTC</text>
+  <text x="600" y="480" text-anchor="middle" fill="#1a1a1b" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="700">Get rich without getting lucky.</text>
 </svg>

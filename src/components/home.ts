@@ -64,67 +64,51 @@ export function renderHomeScreen(opts: {
   const perLevel = me?.economy?.levelReward
     ? `${me.economy.levelReward} ${symbol}`
     : `10 ${symbol}`;
-  const resumeLabel = saved > 0 ? `Resume level ${saved + 1}` : 'Start playing';
+  const resumeLabel = saved > 0 ? `Continue` : `Play`;
 
-  const pathChips = Array.from({ length: TOTAL_LEVELS }, (_, i) => {
-    const n = i + 1;
-    const cls = i < saved ? 'path-chip path-chip--done' : i === saved ? 'path-chip path-chip--now' : 'path-chip';
-    return `<span class="${cls}">${i < saved ? '✓' : n}</span>`;
-  }).join('');
+  const today = new Date().toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
   return `
-    <div class="screen screen--home">
+    <div class="screen screen--home screen--wordle">
       ${renderTopNav('home')}
       ${renderWalletBar(me)}
 
-      <div class="landing landing--bright">
-        <header class="home-hero">
-          <div class="home-hero-copy">
-            <p class="home-hero-kicker">Play · Learn · Earn</p>
-            <h1 class="home-hero-title">Naval’s tweetstorm,<br />turned into a game.</h1>
-            <p class="home-hero-lede">
-              ${TOTAL_LEVELS} interactive levels through <em>How to Get Rich</em>.
-              Clear puzzles, earn <strong>${escapeHtml(symbol)}</strong>, cash out in BTC.
-            </p>
-            <div class="home-hero-actions">
-              <button class="btn-secondary" id="btn-sponsor-hero" type="button">Sponsor</button>
-              <button class="btn-ghost" id="btn-videos-home" type="button">Watch Naval →</button>
-            </div>
-            ${loading ? '<p class="home-loading">Loading wallet…</p>' : ''}
-          </div>
-          ${renderGamePreview({ saved, perLevel, resumeLabel })}
-        </header>
+      <main class="wq-title">
+        <h1 class="wq-logo">Naval Quest</h1>
+        <p class="wq-tagline">
+          Get rich without getting lucky — ${TOTAL_LEVELS} levels from Naval’s tweetstorm.
+          Earn ${escapeHtml(symbol)}. Cash out in BTC.
+        </p>
+
+        ${renderGamePreview({ saved, perLevel, resumeLabel })}
+
+        ${loading ? '<p class="home-loading">Loading wallet…</p>' : ''}
 
         ${renderHowFlowAnimation(symbol)}
 
-        <section class="home-stats-wrap">
-          ${sponsorThanks}
-          ${statsHtml}
-        </section>
+        ${sponsorThanks}
 
-        <section class="home-path" aria-label="Quest progress">
-          <h2 class="section-title">The ${TOTAL_LEVELS}-level path</h2>
-          <p class="section-lede">One tweet per level — from “Seek wealth” to “Productize yourself.”</p>
-          <div class="path-grid">${pathChips}</div>
-        </section>
+        <div class="wq-meta">
+          <p class="wq-date">${escapeHtml(today)}</p>
+          <p class="wq-edition">No. ${saved + 1} · ${TOTAL_LEVELS} tweets</p>
+        </div>
 
-        <section class="home-sponsor-strip">
-          <div class="home-sponsor-copy">
-            <h2 class="section-title">Fund the prize pool</h2>
-            <p class="section-lede">Patrons sponsor via Stripe. Players earn ${escapeHtml(symbol)} as they learn.</p>
-          </div>
-          <div class="home-sponsor-actions">
-            <button class="btn-primary" id="btn-sponsor-home" type="button">Sponsor Naval Quest</button>
-            <button class="btn-text" id="btn-cashout-home" type="button">Cash out</button>
-            ${saved > 0 ? '<button class="btn-text" id="btn-reset" type="button">Start over</button>' : ''}
-          </div>
-        </section>
+        <div class="wq-secondary-actions">
+          <button class="wq-btn-outline" id="btn-sponsor-hero" type="button">Sponsor</button>
+          <button class="wq-btn-ghost" id="btn-videos-home" type="button">Videos</button>
+          <button class="wq-btn-ghost" id="btn-cashout-home" type="button">Cash out</button>
+          ${saved > 0 ? '<button class="wq-btn-ghost" id="btn-reset" type="button">Start over</button>' : ''}
+        </div>
 
-        <section class="home-final">
-          <h2 class="home-final-title">Wealth is assets that earn while you sleep.</h2>
-          <button class="btn-primary btn-primary--xl" id="btn-start-2" type="button">${escapeHtml(resumeLabel)} →</button>
-        </section>
-      </div>
+        <div class="wq-stats">${statsHtml}</div>
+
+        <button class="wq-play wq-play--secondary" id="btn-start-2" type="button" hidden aria-hidden="true">${escapeHtml(resumeLabel)}</button>
+        <button class="wq-btn-outline" id="btn-sponsor-home" type="button" hidden aria-hidden="true">Sponsor</button>
+      </main>
       ${renderSlykDock()}
     </div>
   `;

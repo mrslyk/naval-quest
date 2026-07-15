@@ -1,36 +1,28 @@
-import { TOTAL_LEVELS } from '../data/tweets';
 import { escapeHtml } from '../utils';
 
 export function renderHowFlowAnimation(symbol: string): string {
-  const steps = [
-    { icon: '▶', title: 'Play', desc: `${TOTAL_LEVELS} tweet levels with puzzles` },
-    { icon: '◎', title: 'Learn', desc: 'Podcast clips + Naval quotes per level' },
-    { icon: '+', title: 'Earn', desc: `${escapeHtml(symbol)} in your Slyk wallet` },
-    { icon: '₿', title: 'Cash out', desc: 'Convert to BTC via Coinbase' },
-  ];
-
   return `
-    <section class="how-flow" aria-label="How Naval Quest works">
-      <h2 class="section-title">How it works</h2>
-      <p class="section-lede">Four steps from tweet to payout — watch the loop.</p>
-      <div class="how-flow-track">
-        ${steps
-          .map(
-            (s, i) => `
-          <article class="how-flow-step" style="--step:${i}">
-            <span class="how-flow-icon" aria-hidden="true">${s.icon}</span>
-            <h3 class="how-flow-title">${escapeHtml(s.title)}</h3>
-            <p class="how-flow-desc">${s.desc}</p>
-          </article>`
-          )
-          .join('<span class="how-flow-connector" aria-hidden="true"></span>')}
-      </div>
-      <div class="how-flow-progress" aria-hidden="true">
-        <span class="how-flow-dot"></span>
-        <span class="how-flow-dot"></span>
-        <span class="how-flow-dot"></span>
-        <span class="how-flow-dot"></span>
-      </div>
+    <section class="wq-howto" aria-label="How to play">
+      <h2 class="wq-howto-title">How to play</h2>
+      <ul class="wq-howto-list">
+        <li>
+          <span class="wq-tile wq-tile--sm wq-tile--correct"><span class="wq-tile-letter">W</span></span>
+          <p><strong>Play</strong> one Naval tweet per level — ${escapeHtml(symbol)} for each clear.</p>
+        </li>
+        <li>
+          <span class="wq-tile wq-tile--sm wq-tile--present"><span class="wq-tile-letter">E</span></span>
+          <p><strong>Learn</strong> with podcast clips and Naval’s own words.</p>
+        </li>
+        <li>
+          <span class="wq-tile wq-tile--sm wq-tile--absent"><span class="wq-tile-letter">A</span></span>
+          <p><strong>Cash out</strong> BTC via Coinbase when you finish all 39.</p>
+        </li>
+      </ul>
+      <p class="wq-howto-legend">
+        <span><i class="wq-swatch wq-swatch--correct"></i> Correct</span>
+        <span><i class="wq-swatch wq-swatch--present"></i> Close</span>
+        <span><i class="wq-swatch wq-swatch--absent"></i> Miss</span>
+      </p>
     </section>
   `;
 }
