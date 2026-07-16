@@ -5,6 +5,7 @@ import { renderTopNav } from './nav';
 import { renderWalletBar } from './wallet-bar';
 import { renderGamePreview } from './game-preview';
 import { renderHowFlowAnimation } from './how-flow';
+import { renderLevelsGrid } from './levels-grid';
 import { LevelRewardResult } from '../slyk/bridge';
 import { MeResponse } from '../slyk/session';
 
@@ -77,34 +78,34 @@ export function renderHomeScreen(opts: {
       ${renderTopNav('home')}
       ${renderWalletBar(me)}
 
-      <main class="wq-title">
-        <h1 class="wq-logo">Naval Quest</h1>
-        <p class="wq-tagline">
-          Get rich without getting lucky — ${TOTAL_LEVELS} levels from Naval’s tweetstorm.
-          Earn ${escapeHtml(symbol)}. Cash out in BTC.
-        </p>
+      <main class="wq-home">
+        <header class="wq-hero">
+          <h1 class="wq-logo">Naval Quest</h1>
+          <p class="wq-tagline">
+            Get rich without getting lucky — ${TOTAL_LEVELS} levels from Naval’s tweetstorm.
+            Earn ${escapeHtml(symbol)}. Cash out in BTC.
+          </p>
+          ${renderGamePreview({ saved, perLevel, resumeLabel })}
+          ${loading ? '<p class="home-loading">Loading wallet…</p>' : ''}
+          <div class="wq-meta">
+            <p class="wq-date">${escapeHtml(today)}</p>
+            <p class="wq-edition">No. ${saved + 1} · ${TOTAL_LEVELS} tweets</p>
+          </div>
+          <div class="wq-secondary-actions">
+            <button class="wq-btn-outline" id="btn-sponsor-hero" type="button">Sponsor</button>
+            <button class="wq-btn-ghost" id="btn-videos-home" type="button">Videos</button>
+            <button class="wq-btn-ghost" id="btn-cashout-home" type="button">Cash out</button>
+            ${saved > 0 ? '<button class="wq-btn-ghost" id="btn-reset" type="button">Start over</button>' : ''}
+          </div>
+        </header>
 
-        ${renderGamePreview({ saved, perLevel, resumeLabel })}
+        ${renderLevelsGrid({ saved, perLevel })}
 
-        ${loading ? '<p class="home-loading">Loading wallet…</p>' : ''}
-
-        ${renderHowFlowAnimation(symbol)}
-
-        ${sponsorThanks}
-
-        <div class="wq-meta">
-          <p class="wq-date">${escapeHtml(today)}</p>
-          <p class="wq-edition">No. ${saved + 1} · ${TOTAL_LEVELS} tweets</p>
+        <div class="wq-home-footer">
+          ${renderHowFlowAnimation(symbol)}
+          ${sponsorThanks}
+          <div class="wq-stats">${statsHtml}</div>
         </div>
-
-        <div class="wq-secondary-actions">
-          <button class="wq-btn-outline" id="btn-sponsor-hero" type="button">Sponsor</button>
-          <button class="wq-btn-ghost" id="btn-videos-home" type="button">Videos</button>
-          <button class="wq-btn-ghost" id="btn-cashout-home" type="button">Cash out</button>
-          ${saved > 0 ? '<button class="wq-btn-ghost" id="btn-reset" type="button">Start over</button>' : ''}
-        </div>
-
-        <div class="wq-stats">${statsHtml}</div>
 
         <button class="wq-play wq-play--secondary" id="btn-start-2" type="button" hidden aria-hidden="true">${escapeHtml(resumeLabel)}</button>
         <button class="wq-btn-outline" id="btn-sponsor-home" type="button" hidden aria-hidden="true">Sponsor</button>

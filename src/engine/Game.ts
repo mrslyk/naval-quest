@@ -240,6 +240,24 @@ export class Game {
       this.currentLevel = 0;
       this.renderHome();
     });
+    this.root.querySelectorAll('.lg-row:not(.lg-row--locked)').forEach((row) => {
+      const goLevel = () => {
+        const idx = Number((row as HTMLElement).dataset.levelIndex);
+        if (Number.isNaN(idx)) return;
+        this.screen = 'level';
+        this.currentLevel = idx;
+        this.phase = 'intro';
+        this.levelBoost = {};
+        this.render();
+      };
+      row.addEventListener('click', goLevel);
+      row.addEventListener('keydown', (e) => {
+        if ((e as KeyboardEvent).key === 'Enter' || (e as KeyboardEvent).key === ' ') {
+          e.preventDefault();
+          goLevel();
+        }
+      });
+    });
   }
 
   private renderVideos(): void {
