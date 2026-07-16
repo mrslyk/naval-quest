@@ -4124,3 +4124,352 @@ body::before {
   }
 }
 
+
+/* ─── Tweet-play chrome (marquee + phrase unlocks) ─── */
+
+.lesson--play {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 0.75rem 1rem 0;
+}
+
+.tweet-play {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--wq-white);
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.tweet-marquee {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  overflow: hidden;
+  white-space: nowrap;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.tweet-marquee-track {
+  display: inline-flex;
+  gap: 3rem;
+  padding: 0.55rem 0;
+  animation: tweet-scroll 42s linear infinite;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.tweet-marquee-track span {
+  padding: 0 1rem;
+}
+
+@keyframes tweet-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.tweet-play-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  padding: 0.75rem 1rem 0.25rem;
+}
+
+.tweet-play-kicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wq-correct);
+}
+
+.tweet-play-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--wq-black);
+}
+
+.tweet-play-instruction {
+  padding: 0 1rem 0.65rem;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+
+.tweet-phrases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0 1rem 1rem;
+}
+
+.tweet-phrase {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  max-width: 100%;
+  padding: 0.45rem 0.65rem;
+  border: 2px solid var(--wq-tile-border);
+  border-radius: 4px;
+  background: var(--wq-white);
+  color: transparent;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  font-weight: 600;
+  min-height: 2.4rem;
+  position: relative;
+  transition: background 0.25s, border-color 0.25s, color 0.25s, transform 0.25s;
+}
+
+.tweet-phrase:not(.tweet-phrase--on)::after {
+  content: '···';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--ink-faint);
+  letter-spacing: 0.2em;
+  font-size: 0.9rem;
+}
+
+.tweet-phrase-index {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--ink-faint);
+  opacity: 0;
+}
+
+.tweet-phrase-text {
+  visibility: hidden;
+}
+
+.tweet-phrase--on {
+  background: var(--wq-correct);
+  border-color: var(--wq-correct);
+  color: #fff;
+}
+
+.tweet-phrase--on::after {
+  display: none;
+}
+
+.tweet-phrase--on .tweet-phrase-index {
+  opacity: 0.85;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.tweet-phrase--on .tweet-phrase-text {
+  visibility: visible;
+  color: #fff;
+}
+
+.tweet-phrase--pop {
+  animation: phrase-pop 0.45s var(--ease);
+}
+
+@keyframes phrase-pop {
+  0% { transform: scale(0.92) rotateX(70deg); }
+  60% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.tweet-echo {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--wq-correct);
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.phase--playing .playfield,
+.phase--success .playfield {
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ─── Levels grid animations ─── */
+
+.lg-hook {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--wq-correct);
+  margin: 0 0 0.5rem;
+  line-height: 1.35;
+}
+
+.lg-phrase-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.65rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed var(--line);
+}
+
+.lg-phrase {
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  background: var(--wq-white);
+  border: 1px solid var(--line);
+  color: var(--ink-muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  animation: lg-phrase-on 4.8s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.55s);
+}
+
+@keyframes lg-phrase-on {
+  0%, 12%, 100% {
+    background: var(--wq-white);
+    border-color: var(--line);
+    color: var(--ink-muted);
+  }
+  18%, 30% {
+    background: var(--wq-correct);
+    border-color: var(--wq-correct);
+    color: #fff;
+  }
+}
+
+.lg-chip--drift {
+  animation: lg-drift 3.6s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.35s);
+}
+
+@keyframes lg-drift {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-4px); }
+  55% { transform: translateY(1px); opacity: 0.85; }
+}
+
+.lg-opt--pulse {
+  animation: lg-pick 2.8s ease-in-out infinite;
+}
+
+@keyframes lg-pick {
+  0%, 100% { box-shadow: none; transform: scale(1); }
+  45%, 55% {
+    box-shadow: 0 0 0 2px var(--wq-correct);
+    transform: scale(1.03);
+  }
+}
+
+.lg-chip--seq {
+  animation: lg-seq 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.45s);
+}
+
+@keyframes lg-seq {
+  0%, 100% { border-color: var(--line); background: var(--wq-white); }
+  20%, 35% {
+    border-color: var(--wq-correct);
+    background: var(--accent-soft);
+  }
+}
+
+.lg-chip--pop {
+  animation: lg-pop 2.6s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.3s);
+}
+
+@keyframes lg-pop {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+}
+
+.lg-chip--fade {
+  animation: lg-fade 2.6s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.4s);
+}
+
+@keyframes lg-fade {
+  0%, 100% { opacity: 1; }
+  45%, 60% { opacity: 0.25; }
+}
+
+.lg-chip--link {
+  animation: lg-link 3s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.35s);
+}
+
+@keyframes lg-link {
+  0%, 100% { border-color: var(--line); }
+  40%, 55% { border-color: var(--wq-present); background: var(--accent-warm-soft); }
+}
+
+.lg-slider i {
+  left: var(--pct, 50%);
+  animation: lg-slide 3.5s ease-in-out infinite;
+}
+
+@keyframes lg-slide {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-12px); }
+}
+
+.lg-compound {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  height: 3rem;
+  margin: 0.35rem 0;
+}
+
+.lg-compound-bar {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  background: var(--wq-correct);
+  animation: lg-grow 2.8s ease-in-out infinite;
+  animation-delay: calc(var(--grow, 1) * 0.2s);
+  height: calc(20% * var(--grow, 1));
+  opacity: 0.55;
+}
+
+@keyframes lg-grow {
+  0%, 100% { opacity: 0.45; transform: scaleY(0.85); transform-origin: bottom; }
+  40%, 55% { opacity: 1; transform: scaleY(1); }
+}
+
+.lg-bucket {
+  animation: lg-bucket 4s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.4s);
+}
+
+@keyframes lg-bucket {
+  0%, 100% { border-color: var(--line); }
+  30%, 45% { border-color: var(--wq-correct); background: var(--accent-soft); }
+}
+
+.lg-row--now .lg-game {
+  border-color: var(--wq-correct);
+}
+
+.lg-row--done .lg-phrase {
+  background: var(--wq-correct);
+  border-color: var(--wq-correct);
+  color: #fff;
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tweet-marquee-track,
+  .lg-phrase,
+  .lg-chip--drift,
+  .lg-opt--pulse,
+  .lg-chip--seq,
+  .lg-chip--pop,
+  .lg-chip--fade,
+  .lg-chip--link,
+  .lg-slider i,
+  .lg-compound-bar,
+  .lg-bucket,
+  .tweet-phrase--pop {
+    animation: none !important;
+  }
+}

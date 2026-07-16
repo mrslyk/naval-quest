@@ -13,11 +13,21 @@ import {
 } from '../data/tweets';
 import { riddleFor } from '../data/riddles';
 import { escapeHtml, shuffle } from '../utils';
+import { signalCorrectStep, tweetHook } from '../utils/tweet-phrases';
+import { getLevelTweetText } from '../components/tweet-play';
 
 export type LevelCompleteCallback = () => void;
 
 function renderRiddleHeader(level: TweetLevel): string {
-  return `<p class="riddle">${escapeHtml(riddleFor(level))}</p>`;
+  const hook = tweetHook(getLevelTweetText(level));
+  return `
+    <p class="tweet-echo" aria-hidden="true">“${escapeHtml(hook)}”</p>
+    <p class="riddle">${escapeHtml(riddleFor(level))}</p>
+  `;
+}
+
+function noteCorrect(el: HTMLElement): void {
+  signalCorrectStep(el);
 }
 
 export function mountLevel(
@@ -59,6 +69,8 @@ function showFeedback(el: HTMLElement, correct: boolean, message?: string): void
   toast.textContent = message ?? (correct ? '✓ Correct' : 'Try again');
   el.appendChild(toast);
   setTimeout(() => toast.remove(), correct ? 600 : 1400);
+
+  if (correct) noteCorrect(el);
 }
 
 function mountSort(container: HTMLElement, onComplete: LevelCompleteCallback): void {
@@ -139,6 +151,7 @@ function mountSort(container: HTMLElement, onComplete: LevelCompleteCallback): v
   function checkSort(): void {
     let allPlaced = true;
     let allCorrect = true;
+    let newlyCorrect = 0;
     cfg.items.forEach((item) => {
       const el = container.querySelector(`[data-id="${item.id}"]`) as HTMLElement;
       const parent = el?.closest('.bucket-drop') as HTMLElement | null;
@@ -146,8 +159,15 @@ function mountSort(container: HTMLElement, onComplete: LevelCompleteCallback): v
         allPlaced = false;
         return;
       }
-      if (parent.dataset.bucket !== item.bucket) allCorrect = false;
+      const ok = parent.dataset.bucket === item.bucket;
+      if (!ok) allCorrect = false;
+      else if (!el.dataset.phraseNoted) {
+        el.dataset.phraseNoted = '1';
+        newlyCorrect += 1;
+      }
     });
+
+    for (let i = 0; i < newlyCorrect; i++) noteCorrect(levelEl);
 
     if (allPlaced && allCorrect) {
       showFeedback(levelEl, true, 'Sorted!');
@@ -236,6 +256,7 @@ function mountTapSequence(container: HTMLElement, onComplete: LevelCompleteCallb
       btn.classList.add('tapped');
       (btn as HTMLButtonElement).disabled = true;
       step++;
+      noteCorrect(levelEl);
       if (step < cfg.sequence.length) {
         (buttons[step] as HTMLButtonElement).disabled = false;
       } else {
@@ -299,6 +320,7 @@ function mountMatch(container: HTMLElement, onComplete: LevelCompleteCallback): 
         container.querySelector(`[data-id="${selectedLeft}"]`)?.classList.add('matched');
         matched.add(selectedLeft);
         selectedLeft = null;
+        noteCorrect(levelEl);
         if (matched.size === cfg.left.length) {
           showFeedback(levelEl, true);
           setTimeout(onComplete, 700);
@@ -433,6 +455,7 @@ function mountCompound(container: HTMLElement, onComplete: LevelCompleteCallback
     amtEl.textContent = `$${wealth.toLocaleString()}`;
     roundEl.textContent = `Round ${round} / ${cfg.rounds}`;
     btn.classList.add('pulse');
+    noteCorrect(levelEl);
 
     if (round >= cfg.rounds) {
       btn.textContent = 'Compounded!';
@@ -477,6 +500,7 @@ function mountPath(container: HTMLElement, onComplete: LevelCompleteCallback): v
       if (id === expected) {
         selected.push(id);
         btn.classList.add('path-active');
+        noteCorrect(levelEl);
         if (selected.length === correctPath.length) {
           showFeedback(levelEl, true);
           setTimeout(onComplete, 800);
@@ -534,6 +558,7 @@ function mountCollect(container: HTMLElement, onComplete: LevelCompleteCallback)
       el.classList.add('collected');
       collected.add(el.dataset.id!);
       countEl.textContent = String(collected.size);
+      noteCorrect(levelEl);
 
       if (collected.size >= cfg.requiredCount) {
         showFeedback(levelEl, true);
@@ -590,6 +615,7 @@ function mountAvoid(container: HTMLElement, onComplete: LevelCompleteCallback): 
         score++;
         scoreEl.textContent = String(score);
         el.classList.add('hit-good');
+        noteCorrect(levelEl);
         if (score >= cfg.rounds) {
           showFeedback(levelEl, true);
           setTimeout(onComplete, 700);

@@ -1,5 +1,7 @@
 import { TWEET_LEVELS_ALL, TOTAL_LEVELS, TweetLevel } from '../data/tweets';
 import { renderNavalGuide, renderTweetCard, renderLevelHeader, renderSlykDock } from '../components/ui';
+import { renderTweetPlayChrome, bindTweetPhraseProgress } from '../components/tweet-play';
+import { signalUnlockAll } from '../utils/tweet-phrases';
 import { bindPodcastPlayer } from '../components/podcast-player';
 import { bindMediaHub } from '../components/media-hub';
 import { renderHomeScreen, renderLevelRewardBlock, renderShopStrip } from '../components/home';
@@ -372,6 +374,9 @@ export class Game {
     });
   }
 
+  private phraseProgress: { unlockOne: () => void; unlockAll: () => void; dispose: () => void } | null =
+    null;
+
   private renderLevel(): void {
     const level = TWEET_LEVELS_ALL[this.currentLevel];
     if (!level) {
@@ -380,9 +385,13 @@ export class Game {
       return;
     }
 
+    this.phraseProgress?.dispose();
+    this.phraseProgress = null;
+
     (window as unknown as { __currentLevel?: TweetLevel }).__currentLevel = level;
     const isIntro = this.phase === 'intro';
     const isSuccess = this.phase === 'success';
+    const isPlaying = this.phase === 'playing';
 
     const boostNote = this.levelBoost.reveal
       ? `<p class="boost-note">Answer revealed — tap through when ready.</p>`
@@ -390,21 +399,37 @@ export class Game {
         ? `<p class="boost-note">Hint: ${escapeHtml(this.levelBoost.hint)}</p>`
         : '';
 
+    const lessonBlock = isPlaying
+      ? `
+        <article class="lesson lesson--play">
+          ${renderTweetPlayChrome(level, { phase: 'playing' })}
+          ${renderNavalGuide(level, 'playing')}
+          ${boostNote}
+        </article>`
+      : isSuccess
+        ? `
+        <article class="lesson lesson--play">
+          ${renderTweetPlayChrome(level, { phase: 'success' })}
+          ${renderNavalGuide(level, 'success')}
+        </article>`
+        : `
+        <article class="lesson lesson--open">
+          ${renderTweetCard(level, TOTAL_LEVELS)}
+          ${renderNavalGuide(level, 'intro')}
+          ${boostNote}
+        </article>`;
+
     this.root.innerHTML = this.withAuthModal(`
       <div class="screen screen--level phase--${this.phase}">
         ${renderLevelHeader(level, this.currentLevel, TOTAL_LEVELS)}
         ${renderWalletBar(this.me)}
-        <article class="lesson lesson--open">
-          ${renderTweetCard(level, TOTAL_LEVELS)}
-          ${renderNavalGuide(level, this.phase)}
-          ${boostNote}
-        </article>
-        ${this.phase === 'playing' ? renderShopStrip(this.me) : ''}
+        ${lessonBlock}
+        ${isPlaying ? renderShopStrip(this.me) : ''}
         <section class="playfield ${isIntro ? 'playfield--waiting' : ''}" data-level="${level.id}">
           <div class="playfield-inner" id="level-canvas"></div>
           ${
             isIntro
-              ? '<button class="btn-primary btn-primary--soft" id="btn-begin" type="button">Play this level</button>'
+              ? '<button class="btn-primary btn-primary--soft" id="btn-begin" type="button">Play this level — reveal the tweet</button>'
               : ''
           }
         </section>
@@ -424,6 +449,10 @@ export class Game {
         void this.buyHelp(el.getAttribute('data-shop') || '');
       });
     });
+
+    if (isPlaying || isSuccess) {
+      this.phraseProgress = bindTweetPhraseProgress(this.root);
+    }
 
     if (isIntro) {
       this.root.querySelector('#btn-begin')?.addEventListener('click', () => {
@@ -483,16 +512,15 @@ export class Game {
     const level = TWEET_LEVELS_ALL[this.currentLevel];
     this.phase = 'success';
 
+    this.phraseProgress?.unlockAll();
+    signalUnlockAll(this.root);
+
     const reward = await notifyLevelComplete(level?.id ?? this.currentLevel + 1);
     await this.refreshMe();
 
-    const whisperText = this.root.querySelector('.whisper-text');
-    if (whisperText && level) {
-      const whisper = this.root.querySelector('.whisper');
-      whisper?.classList.replace('whisper--playing', 'whisper--success');
-      whisper?.classList.replace('whisper--intro', 'whisper--success');
-      whisperText.textContent = level.navalSuccess;
-    }
+    // Re-render into success chrome with all phrases lit, then sheet
+    this.renderLevel();
+    this.phraseProgress?.unlockAll();
 
     const playfield = this.root.querySelector('.playfield');
     playfield?.classList.remove('playfield--waiting');
@@ -503,7 +531,7 @@ export class Game {
       sheet.className = 'sheet';
       sheet.innerHTML = `
         <div class="sheet-body">
-          <p class="sheet-label">${fromShop ? 'Boost used' : 'Clear'}</p>
+          <p class="sheet-label">${fromShop ? 'Boost used' : 'Tweet complete'}</p>
           ${renderLevelRewardBlock(reward)}
           <p class="sheet-text">${level?.navalSuccess ?? ''}</p>
           <div class="sheet-actions">
