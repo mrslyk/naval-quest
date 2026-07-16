@@ -222,6 +222,7 @@ export function renderLevelsGrid(opts: {
   perLevel: string;
 }): string {
   const { saved, perLevel } = opts;
+  const total = TWEET_LEVELS_ALL.length;
 
   const rows = TWEET_LEVELS_ALL.map((level, index) => {
     const done = index < saved;
@@ -231,17 +232,17 @@ export function renderLevelsGrid(opts: {
 
     return `
       <article class="lg-row lg-row--${state}" data-level-index="${index}" ${locked ? '' : 'tabindex="0" role="button"'}>
-        <div class="lg-col lg-col--tweet">
+        <div class="lg-box lg-box--tweet">
           <header class="lg-tweet-head">
             <span class="lg-num">${done ? '✓' : level.id}</span>
             <span class="lg-title">${escapeHtml(level.title)}</span>
           </header>
           <blockquote class="lg-tweet">“${escapeHtml(getLevelTweetText(level))}”</blockquote>
         </div>
-        <div class="lg-col lg-col--game">
+        <div class="lg-box lg-box--game">
           ${renderGameMini(level)}
         </div>
-        <div class="lg-col lg-col--reward">
+        <div class="lg-box lg-box--reward">
           <span class="lg-reward${done ? ' lg-reward--won' : ''}">+${escapeHtml(perLevel)}</span>
           <span class="lg-reward-state">${done ? 'Earned' : current ? 'Play now' : 'Locked'}</span>
         </div>
@@ -249,18 +250,21 @@ export function renderLevelsGrid(opts: {
   }).join('');
 
   return `
-    <section class="levels-grid" aria-label="All ${TWEET_LEVELS_ALL.length} levels">
+    <section class="levels-grid" aria-label="All ${total} levels">
       <header class="lg-head">
-        <h2 class="lg-heading">The ${TWEET_LEVELS_ALL.length} levels</h2>
-        <p class="lg-sub">Tweet · Living game · Reward — each puzzle rebuilds Naval’s lesson phrase by phrase.</p>
+        <h2 class="lg-heading">${total} tweets · 3 columns</h2>
+        <p class="lg-sub">Tweet · Game · Reward</p>
       </header>
-      <div class="lg-table-head" aria-hidden="true">
-        <span>Tweet</span>
-        <span>Game</span>
-        <span>Reward</span>
-      </div>
-      <div class="lg-rows">
-        ${rows}
+
+      <div class="lg-board">
+        <div class="lg-board-head" aria-hidden="true">
+          <div class="lg-box lg-box--head">Tweet</div>
+          <div class="lg-box lg-box--head">Game</div>
+          <div class="lg-box lg-box--head">Reward</div>
+        </div>
+        <div class="lg-board-body">
+          ${rows}
+        </div>
       </div>
     </section>
   `;
