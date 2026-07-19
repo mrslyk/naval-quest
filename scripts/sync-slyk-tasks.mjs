@@ -1,26 +1,30 @@
 #!/usr/bin/env node
 /**
- * Sync Naval Quest level reward amounts + images onto Slyk automatic tasks.
+ * Sync Naval Quest level reward amounts (+ descriptions) onto Slyk automatic tasks.
  *
  * Requires SLYK_API_KEY (from .env or environment).
  *
  * Usage:
- *   npm run sync:rewards   # generate public/rewards/*.svg first
- *   npm run sync:slyk      # PATCH amounts + image URLs
+ *   npm run sync:rewards   # generate public/rewards/*.svg
+ *   npm run sync:slyk      # PATCH amounts + descriptions
  *   npm run sync:slyk -- --dry-run
  *
- * Image URLs point at the deployed game origin so Slyk can fetch them:
- *   {NAVAL_PUBLIC_ASSET_BASE}/rewards/level-XX.svg
+ * What the API can do:
+ *   ✓ PATCH /tasks/:id { amount, description } — works for automatic tasks
+ *   ✓ PATCH /assets/nvl { logo } — NAV wallet asset logo (public URL)
+ *   ✗ PATCH /tasks/:id { image, thumbnail } — rejected for type=automatic
+ *     (Slyk schema: additionalProperties — images only for system/manual tasks)
  *
- * Also PATCHes the NAV asset logo when possible:
- *   PATCH /assets/{code}  { logo: "…/rewards/nav-logo.svg" }
+ * Manual images (required for level tasks in the dashboard/wallet):
+ *   1. Deploy so https://navalgame.netlify.app/rewards/level-XX.svg exists
+ *   2. Open Slyk admin for naval → Tasks
+ *   3. For each "Naval Quest — Level N" task → Edit → Image / Thumbnail
+ *   4. Upload the matching SVG (or PNG export) from public/rewards/
+ *      Or paste: https://navalgame.netlify.app/rewards/level-NN.svg
+ *   5. Confirm Assets → NAV (nvl) logo already points at
+ *      https://navalgame.netlify.app/rewards/nav-logo.svg (set by this script)
  *
- * If the API rejects image/logo fields, set images manually in the Slyk dashboard:
- *   1. Open https://naval.slyk.io (admin) → Tasks
- *   2. For each "Level N" automatic task → edit → Image / Thumbnail
- *   3. Upload or paste URL: https://navalgame.netlify.app/rewards/level-NN.svg
- *   4. Assets → nvl (NAV) → Logo → https://navalgame.netlify.app/rewards/nav-logo.svg
- *   5. Set each task Amount to: 10 + (N-1)*step (default step=1 → L1=10 … L39=48)
+ * Amount schedule: amount = base + (level-1)*step (default 10 + (N-1)*1 → L1=10 … L39=48)
  */
 import { readFileSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
@@ -56,15 +60,16 @@ const TOTAL = 39;
 const API_KEY = process.env.SLYK_API_KEY;
 const HOST = process.env.SLYK_API_HOST || 'api.slyk.io';
 const ASSET = process.env.NAVAL_REWARD_ASSET || 'nvl';
+const SYMBOL = process.env.NAVAL_REWARD_SYMBOL || 'NAV';
 const BASE = Number(process.env.NAVAL_LEVEL_REWARD_AMOUNT || '10');
 const STEP = Number(process.env.NAVAL_LEVEL_REWARD_STEP || '1');
+
 function resolvePublicBase() {
   const raw = (
     process.env.NAVAL_PUBLIC_ASSET_BASE ||
     process.env.NAVAL_GAME_ORIGIN ||
     'https://navalgame.netlify.app'
   ).replace(/\/$/, '');
-  // Slyk must fetch images from a public host — never push localhost URLs.
   if (/localhost|127\.0\.0\.1/.test(raw)) {
     return 'https://navalgame.netlify.app';
   }
@@ -141,12 +146,17 @@ async function listAllTasks() {
 async function main() {
   if (!API_KEY) {
     console.error('SLYK_API_KEY missing. Set it in .env or the environment.');
-    console.error('Manual fallback: see header comment in this script.');
+    console.error('Manual image steps: see header comment in this script.');
     process.exit(1);
   }
 
   console.log(`Public asset base: ${PUBLIC_BASE}`);
-  console.log(`Reward schedule: base=${BASE} step=${STEP} → L1=${amountFor(1)} … L${TOTAL}=${amountFor(TOTAL)}`);
+  console.log(
+    `Reward schedule: base=${BASE} step=${STEP} → L1=${amountFor(1)} … L${TOTAL}=${amountFor(TOTAL)} ${SYMBOL}`
+  );
+  console.log(
+    'Note: automatic tasks cannot set image/thumbnail via API — set those in the Slyk dashboard.'
+  );
   if (DRY) console.log('DRY RUN — no PATCH calls\n');
 
   const tasks = await listAllTasks();
@@ -159,7 +169,9 @@ async function main() {
     byLevel[level] = task;
   }
 
-  const mapped = Object.keys(byLevel).map(Number).sort((a, b) => a - b);
+  const mapped = Object.keys(byLevel)
+    .map(Number)
+    .sort((a, b) => a - b);
   console.log(`Found ${mapped.length}/${TOTAL} level tasks (${automatic.length} automatic tasks total)`);
 
   if (mapped.length === 0) {
@@ -178,9 +190,9 @@ async function main() {
       continue;
     }
     const amount = String(amountFor(level));
-    const image = imageUrl(level);
-    const body = { amount, image, thumbnail: image };
-    console.log(`L${level} ${task.id}: amount=${amount} image=${image}`);
+    const description = `Clear level ${level} of Naval Quest · +${amount} ${SYMBOL}`;
+    const body = { amount, description };
+    console.log(`L${level} ${task.id}: amount=${amount}  (image: set manually → ${imageUrl(level)})`);
     if (DRY) {
       ok += 1;
       continue;
@@ -189,25 +201,11 @@ async function main() {
       await slyk('PATCH', `/tasks/${task.id}`, body);
       ok += 1;
     } catch (err) {
-      // Retry amount-only if image fields rejected
-      if (String(err.message).toLowerCase().includes('image') || err.status === 400) {
-        try {
-          await slyk('PATCH', `/tasks/${task.id}`, { amount });
-          console.warn(`  ⚠ amount OK, image rejected: ${err.message}`);
-          ok += 1;
-          continue;
-        } catch (err2) {
-          console.error(`  ✗ ${err2.message}`);
-          fail += 1;
-          continue;
-        }
-      }
       console.error(`  ✗ ${err.message}`);
       fail += 1;
     }
   }
 
-  // NAV asset logo
   const logo = `${PUBLIC_BASE}/rewards/nav-logo.svg`;
   console.log(`\nAsset ${ASSET} logo → ${logo}`);
   if (!DRY) {
@@ -215,13 +213,8 @@ async function main() {
       await slyk('PATCH', `/assets/${ASSET}`, { logo });
       console.log('  ✓ asset logo updated');
     } catch (err) {
-      try {
-        await slyk('PATCH', `/assets/${ASSET}`, { image: logo });
-        console.log('  ✓ asset image updated');
-      } catch (err2) {
-        console.warn(`  ⚠ could not set asset logo: ${err.message}`);
-        console.warn('    Set manually in Slyk → Assets → nvl → Logo');
-      }
+      console.warn(`  ⚠ could not set asset logo: ${err.message}`);
+      console.warn('    Set manually in Slyk → Assets → nvl → Logo');
     }
   }
 
@@ -229,6 +222,9 @@ async function main() {
     console.warn(`\nMissing tasks for levels: ${missing.join(', ')}`);
   }
   console.log(`\nDone: ${ok} updated, ${fail} failed, ${missing.length} missing`);
+  console.log('\nManual task images (API blocked for automatic tasks):');
+  console.log('  Slyk admin → Tasks → each Level N → Image/Thumbnail');
+  console.log(`  Use ${PUBLIC_BASE}/rewards/level-NN.svg (or upload from public/rewards/)`);
   if (fail) process.exit(1);
 }
 
