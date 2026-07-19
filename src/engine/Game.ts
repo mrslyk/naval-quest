@@ -24,6 +24,8 @@ import {
   fetchGameStats,
   createSponsorCheckout,
   fetchServerProgress,
+  rollNavalBonus,
+  scoreNavalBonus,
   GameStats,
 } from '../slyk/session';
 import { renderSponsorPage } from '../pages/sponsor';
@@ -31,6 +33,8 @@ import { renderHowItWorksPage } from '../pages/how-it-works';
 import { renderCashoutPage } from '../pages/cashout';
 import { renderVideosPage } from '../pages/videos';
 import { renderStatsBoard, renderSponsorThanks } from '../components/stats-board';
+import { renderNavalBonusModal } from '../components/naval-bonus';
+import { applyDifficulty, difficultyLabel } from './difficulty';
 
 type Screen = 'home' | 'sponsor' | 'how' | 'videos' | 'cashout' | 'level' | 'complete';
 
@@ -500,12 +504,96 @@ export class Game {
     if (!canvas || !level) return;
 
     if (this.levelBoost.reveal) {
-      // Auto-complete after purchase reveal
       void this.onLevelComplete(true);
       return;
     }
 
-    mountLevel(canvas, level, () => this.onLevelComplete(false));
+    const scaled = applyDifficulty(level);
+    (window as unknown as { __currentLevel?: TweetLevel }).__currentLevel = scaled;
+    const badge = this.root.querySelector('.tweet-play-kicker');
+    if (badge) {
+      badge.textContent = `Tweet ${level.id} · ${difficultyLabel(level.id)} · Build the lesson`;
+    }
+    mountLevel(canvas, scaled, () => this.onLevelComplete(false));
+  }
+
+  private advanceAfterLevel(level: TweetLevel | undefined): void {
+    this.currentLevel++;
+    this.levelBoost = {};
+    saveProgress(this.currentLevel);
+    if (this.currentLevel >= TOTAL_LEVELS) {
+      void notifyJourneyComplete(level?.id ?? TOTAL_LEVELS).then(() => {
+        this.screen = 'complete';
+        this.render();
+      });
+    } else {
+      this.phase = 'intro';
+      this.screen = 'level';
+      this.render();
+    }
+  }
+
+  private bindNavalBonus(offer: {
+    questionId: string;
+    question: string;
+    hint?: string | null;
+    bonusLabel: string;
+    navalLine?: string;
+  }, level: TweetLevel | undefined): void {
+    const form = this.root.querySelector('#naval-bonus-form') as HTMLFormElement | null;
+    const err = this.root.querySelector('#naval-bonus-error') as HTMLElement | null;
+    const ok = this.root.querySelector('#naval-bonus-ok') as HTMLElement | null;
+    const submit = this.root.querySelector('#naval-bonus-submit') as HTMLButtonElement | null;
+
+    const closeAndAdvance = () => this.advanceAfterLevel(level);
+
+    this.root.querySelector('#naval-bonus-skip')?.addEventListener('click', closeAndAdvance);
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const answer = String(fd.get('answer') || '').trim();
+      if (err) err.hidden = true;
+      if (ok) ok.hidden = true;
+      if (submit) {
+        submit.disabled = true;
+        submit.textContent = 'Naval is thinking…';
+      }
+      try {
+        const result = await scoreNavalBonus({ questionId: offer.questionId, answer });
+        if (result.pass) {
+          if (ok) {
+            ok.hidden = false;
+            ok.textContent = `${result.feedback} +${result.bonusLabel || offer.bonusLabel}`;
+          }
+          await this.refreshMe();
+          setTimeout(closeAndAdvance, 1600);
+        } else {
+          if (err) {
+            err.hidden = false;
+            err.textContent = result.feedback || 'Not quite.';
+          }
+          if (submit) {
+            submit.disabled = false;
+            submit.textContent = 'Try once more';
+          }
+          // One more try, then skip advances
+          form.dataset.tries = String(Number(form.dataset.tries || 0) + 1);
+          if (Number(form.dataset.tries) >= 2) {
+            setTimeout(closeAndAdvance, 1800);
+          }
+        }
+      } catch (ex) {
+        if (err) {
+          err.hidden = false;
+          err.textContent = ex instanceof Error ? ex.message : 'Could not score answer';
+        }
+        if (submit) {
+          submit.disabled = false;
+          submit.textContent = 'Answer Naval';
+        }
+      }
+    });
   }
 
   private async onLevelComplete(fromShop: boolean): Promise<void> {
@@ -518,7 +606,6 @@ export class Game {
     const reward = await notifyLevelComplete(level?.id ?? this.currentLevel + 1);
     await this.refreshMe();
 
-    // Re-render into success chrome with all phrases lit, then sheet
     this.renderLevel();
     this.phraseProgress?.unlockAll();
 
@@ -526,43 +613,78 @@ export class Game {
     playfield?.classList.remove('playfield--waiting');
 
     const canvas = this.root.querySelector('#level-canvas');
-    if (canvas) {
-      const sheet = document.createElement('div');
-      sheet.className = 'sheet';
-      sheet.innerHTML = `
-        <div class="sheet-body">
-          <p class="sheet-label">${fromShop ? 'Boost used' : 'Tweet complete'}</p>
-          ${renderLevelRewardBlock(reward)}
-          <p class="sheet-text">${level?.navalSuccess ?? ''}</p>
-          <div class="sheet-actions">
-            <button class="btn-primary" id="btn-next" type="button">
-              ${this.currentLevel + 1 >= TOTAL_LEVELS ? 'Finish' : 'Next tweet'}
-            </button>
-          </div>
+    if (!canvas) return;
+
+    const sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    sheet.innerHTML = `
+      <div class="sheet-body">
+        <p class="sheet-label">${fromShop ? 'Boost used' : 'Tweet complete'}</p>
+        ${renderLevelRewardBlock(reward)}
+        <p class="sheet-text">${level?.navalSuccess ?? ''}</p>
+        <div class="sheet-actions">
+          <button class="btn-primary" id="btn-next" type="button">
+            ${this.currentLevel + 1 >= TOTAL_LEVELS ? 'Finish' : 'Next tweet'}
+          </button>
         </div>
-      `;
-      canvas.appendChild(sheet);
-      requestAnimationFrame(() => sheet.classList.add('sheet--visible'));
+      </div>
+    `;
+    canvas.appendChild(sheet);
+    requestAnimationFrame(() => sheet.classList.add('sheet--visible'));
 
-      sheet.querySelector('#btn-auth-signup')?.addEventListener('click', () => {
-        this.authMode = 'signup';
-        this.render();
-      });
+    sheet.querySelector('#btn-auth-signup')?.addEventListener('click', () => {
+      this.authMode = 'signup';
+      this.render();
+    });
 
-      sheet.querySelector('#btn-next')?.addEventListener('click', async () => {
-        this.currentLevel++;
-        this.levelBoost = {};
-        saveProgress(this.currentLevel);
-        if (this.currentLevel >= TOTAL_LEVELS) {
-          await notifyJourneyComplete(level?.id ?? TOTAL_LEVELS);
-          this.screen = 'complete';
-        } else {
-          this.phase = 'intro';
-          this.screen = 'level';
+    const goNext = () => this.advanceAfterLevel(level);
+
+    sheet.querySelector('#btn-next')?.addEventListener('click', async () => {
+      // Try Naval AI bonus roll before advancing
+      if (!level || !this.me?.user) {
+        goNext();
+        return;
+      }
+      const nextBtn = sheet.querySelector('#btn-next') as HTMLButtonElement | null;
+      if (nextBtn) {
+        nextBtn.disabled = true;
+        nextBtn.textContent = '…';
+      }
+      try {
+        const roll = await rollNavalBonus({
+          level: level.id,
+          tweet: level.tweet,
+          title: level.title,
+          navalIntro: level.navalIntro,
+        });
+        if (roll.offer && roll.questionId && roll.question && roll.bonusLabel) {
+          this.root.insertAdjacentHTML(
+            'beforeend',
+            renderNavalBonusModal({
+              questionId: roll.questionId,
+              question: roll.question,
+              hint: roll.hint,
+              bonusLabel: roll.bonusLabel,
+              navalLine: roll.navalLine,
+            })
+          );
+          this.bindNavalBonus(
+            {
+              questionId: roll.questionId,
+              question: roll.question,
+              hint: roll.hint,
+              bonusLabel: roll.bonusLabel,
+              navalLine: roll.navalLine,
+            },
+            level
+          );
+          return;
         }
-        this.render();
-      });
-    }
+      } catch {
+        /* skip bonus on error */
+      }
+      goNext();
+    });
   }
 
   private renderComplete(): void {

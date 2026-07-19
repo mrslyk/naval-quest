@@ -139,10 +139,11 @@ export function renderProgressBar(current: number, total: number): string {
 }
 
 export function renderLevelHeader(level: TweetLevel, current: number, total: number): string {
+  const band = level.id <= 13 ? 'Easy' : level.id <= 26 ? 'Medium' : 'Hard';
   return `
     <header class="top-bar">
       <button class="btn-text" id="btn-home" type="button" aria-label="Home">←</button>
-      <span class="level-name">${escapeHtml(level.title)}</span>
+      <span class="level-name">${escapeHtml(level.title)} <span class="level-diff">${band}</span></span>
       ${renderProgressBar(current, total)}
     </header>
   `;

@@ -153,6 +153,41 @@ export async function createSponsorCheckout(data: {
   });
 }
 
+export async function rollNavalBonus(data: {
+  level: number;
+  tweet: string;
+  title: string;
+  navalIntro: string;
+}) {
+  return api<{
+    offer: boolean;
+    reason?: string;
+    questionId?: string;
+    question?: string;
+    hint?: string | null;
+    bonusLabel?: string;
+    navalLine?: string;
+  }>('/api/bonus/roll', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function scoreNavalBonus(data: { questionId: string; answer: string }) {
+  return api<{
+    pass: boolean;
+    score: number;
+    feedback: string;
+    paid: boolean;
+    bonusLabel?: string | null;
+    navLabel?: string | null;
+    error?: string;
+  }>('/api/bonus/score', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function deposit(railId: string, amount: string) {
   return api<{
     ok: boolean;

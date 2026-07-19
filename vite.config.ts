@@ -40,6 +40,10 @@ function applyEnv(env: Record<string, string>) {
     'STRIPE_SECRET_KEY',
     'STRIPE_PUBLISHABLE_KEY',
     'STRIPE_WEBHOOK_SECRET',
+    'MOONSHOT_API_KEY',
+    'KIMI_API_KEY',
+    'KIMI_BASE_URL',
+    'KIMI_MODEL',
   ];
   for (const key of keys) {
     if (env[key]) process.env[key] = env[key];
