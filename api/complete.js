@@ -3,9 +3,9 @@
  */
 import { getPayspaceSnapshot } from './lib/payspace.js';
 import { resolveLevelTaskId, rewardLabelForLevel } from './lib/levels.js';
-import { getSlykConfig, slykPost, rewardAssetSymbol } from './lib/slyk.js';
+import { getSlykConfig, slykPost } from './lib/slyk.js';
 import { readSession } from './lib/session.js';
-import { levelRewardAmount } from './lib/economy.js';
+import { rewardAmountForLevel, rewardLabelForLevelNum } from './lib/economy.js';
 import { readBody } from './lib/http.js';
 import { savePlayerProgress } from './lib/store.js';
 
@@ -43,7 +43,6 @@ export default async function handler(req, res) {
   };
 
   let taskId = body.taskId || resolveLevelTaskId(levelRewards, levelNum);
-  let amountLabel = rewardLabelForLevel(levelRewards, levelNum);
 
   if (!taskId) {
     // Fallback: find by name pattern from live tasks list
@@ -58,14 +57,15 @@ export default async function handler(req, res) {
     });
   }
 
+  // Game schedule is source of truth for UI / stats (Slyk task amount should be synced to match).
+  const navAmount = rewardAmountForLevel(levelNum);
+  const amountLabel = rewardLabelForLevelNum(levelNum);
+  // Keep Slyk mapped label available for debugging
+  const slykLabel = rewardLabelForLevel(levelRewards, levelNum);
+
   try {
     await slykPost(`/tasks/${taskId}/complete`, { userId });
 
-    if (!amountLabel) {
-      amountLabel = `${levelRewardAmount()} ${rewardAssetSymbol()}`;
-    }
-
-    const navAmount = Number(levelRewardAmount());
     try {
       await savePlayerProgress(userId, {
         displayName: session?.name,
@@ -81,6 +81,8 @@ export default async function handler(req, res) {
       level: levelNum,
       taskId,
       amountLabel,
+      amount: navAmount,
+      slykAmountLabel: slykLabel,
       referralNote: 'Your inviter earns a share of this reward automatically.',
     });
   } catch (err) {

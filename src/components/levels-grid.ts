@@ -220,15 +220,19 @@ function renderGameMini(level: TweetLevel): string {
 export function renderLevelsGrid(opts: {
   saved: number;
   perLevel: string;
+  levelRewards?: Array<{ level: number; amountLabel: string }>;
+  symbol?: string;
 }): string {
-  const { saved, perLevel } = opts;
+  const { saved, levelRewards = [], symbol = 'NAV' } = opts;
   const total = TWEET_LEVELS_ALL.length;
+  const rewardByLevel = new Map(levelRewards.map((r) => [r.level, r.amountLabel]));
 
   const rows = TWEET_LEVELS_ALL.map((level, index) => {
     const done = index < saved;
     const current = index === saved;
     const locked = index > saved;
     const state = done ? 'done' : current ? 'now' : 'locked';
+    const rewardLabel = rewardByLevel.get(level.id) || `${10 + index} ${symbol}`;
 
     return `
       <article class="lg-row lg-row--${state}" data-level-index="${index}" ${locked ? '' : 'tabindex="0" role="button"'}>
@@ -243,7 +247,7 @@ export function renderLevelsGrid(opts: {
           ${renderGameMini(level)}
         </div>
         <div class="lg-box lg-box--reward">
-          <span class="lg-reward${done ? ' lg-reward--won' : ''}">+${escapeHtml(perLevel)}</span>
+          <span class="lg-reward${done ? ' lg-reward--won' : ''}">+${escapeHtml(rewardLabel)}</span>
           <span class="lg-reward-state">${done ? 'Earned' : current ? 'Play now' : 'Locked'}</span>
         </div>
       </article>`;

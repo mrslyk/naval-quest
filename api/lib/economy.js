@@ -1,8 +1,16 @@
 /**
- * Naval Quest economy — shop, sponsor tiers, BTC cashout via Coinbase on Slyk.
+ * Naval Quest economy — shop, sponsor tiers, BTC cashout, level-scaled rewards.
+ *
+ * Reward schedule (matches rising difficulty):
+ *   amount(level) = base + (level - 1) * step
+ *   base = NAVAL_LEVEL_REWARD_AMOUNT (default 10)
+ *   step = NAVAL_LEVEL_REWARD_STEP (default 1)
+ *   → Level 1 = 10 NAV … Level 39 = 48 NAV
  */
 
 import { rewardAssetCode, rewardAssetSymbol } from './slyk.js';
+
+export const TOTAL_LEVELS = 39;
 
 export const SHOP_ITEMS = {
   hint: {
@@ -48,18 +56,54 @@ export const CASHOUT_TARGETS = [
   },
 ];
 
+export function rewardBaseAmount() {
+  return Number(process.env.NAVAL_LEVEL_REWARD_AMOUNT || '10');
+}
+
+export function rewardStepAmount() {
+  return Number(process.env.NAVAL_LEVEL_REWARD_STEP || '1');
+}
+
+/** Flat base (legacy helper) — prefer rewardAmountForLevel(level). */
 export function levelRewardAmount() {
-  return process.env.NAVAL_LEVEL_REWARD_AMOUNT || '10';
+  return String(rewardBaseAmount());
+}
+
+/** NAV awarded for clearing a given level (1–39). Always increases with level. */
+export function rewardAmountForLevel(level) {
+  const n = Math.max(1, Math.min(TOTAL_LEVELS, Number(level) || 1));
+  return rewardBaseAmount() + (n - 1) * rewardStepAmount();
+}
+
+export function rewardLabelForLevelNum(level) {
+  return `${rewardAmountForLevel(level)} ${rewardAssetSymbol()}`;
+}
+
+export function allLevelRewards() {
+  return Array.from({ length: TOTAL_LEVELS }, (_, i) => {
+    const level = i + 1;
+    const amount = rewardAmountForLevel(level);
+    return {
+      level,
+      amount,
+      amountLabel: `${amount} ${rewardAssetSymbol()}`,
+      band: level <= 13 ? 'easy' : level <= 26 ? 'medium' : 'hard',
+    };
+  });
 }
 
 export function economyMeta() {
+  const symbol = rewardAssetSymbol();
   return {
     rewardAsset: rewardAssetCode(),
-    rewardSymbol: rewardAssetSymbol(),
-    levelReward: levelRewardAmount(),
+    rewardSymbol: symbol,
+    levelReward: String(rewardBaseAmount()),
+    levelRewardStep: String(rewardStepAmount()),
+    /** Per-level schedule for UI (grid, previews) */
+    levelRewards: allLevelRewards(),
     shop: Object.values(SHOP_ITEMS).map((item) => ({
       ...item,
-      priceLabel: `${item.price} ${rewardAssetSymbol()}`,
+      priceLabel: `${item.price} ${symbol}`,
     })),
     sponsorTiers: SPONSOR_TIERS,
     cashoutTargets: CASHOUT_TARGETS,

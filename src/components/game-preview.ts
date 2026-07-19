@@ -35,7 +35,7 @@ export function renderGamePreview(opts: {
       <p class="wq-board-caption">
         Level ${levelNum} of ${TOTAL_LEVELS}
         ${saved > 0 ? ` · ${saved} cleared` : ''}
-        · +${escapeHtml(perLevel)} per level
+        · +${escapeHtml(perLevel)} next
       </p>
       <button class="wq-play" id="btn-start" type="button">${escapeHtml(resumeLabel)}</button>
     </section>

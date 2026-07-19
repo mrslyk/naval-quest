@@ -8,6 +8,7 @@ import { renderHowFlowAnimation } from './how-flow';
 import { renderLevelsGrid } from './levels-grid';
 import { LevelRewardResult } from '../slyk/bridge';
 import { MeResponse } from '../slyk/session';
+import { rewardLabelForLevel, REWARD_BASE, REWARD_STEP } from '../economy/rewards';
 
 export function renderLevelRewardBlock(reward: LevelRewardResult): string {
   if (reward.state === 'sent' && reward.amountLabel) {
@@ -62,10 +63,17 @@ export function renderHomeScreen(opts: {
 }): string {
   const { saved, me, loading, statsHtml = '', sponsorThanks = '' } = opts;
   const symbol = me?.economy?.rewardSymbol ?? 'NAV';
-  const perLevel = me?.economy?.levelReward
-    ? `${me.economy.levelReward} ${symbol}`
-    : `10 ${symbol}`;
+  const base = Number(me?.economy?.levelReward ?? REWARD_BASE);
+  const step = Number(me?.economy?.levelRewardStep ?? REWARD_STEP);
+  const nextLevel = Math.min(TOTAL_LEVELS, saved + 1);
+  const perLevel = rewardLabelForLevel(nextLevel, symbol, base, step);
   const resumeLabel = saved > 0 ? `Continue` : `Play`;
+  const levelRewards =
+    me?.economy?.levelRewards?.map((r) => ({ level: r.level, amountLabel: r.amountLabel })) ??
+    Array.from({ length: TOTAL_LEVELS }, (_, i) => ({
+      level: i + 1,
+      amountLabel: rewardLabelForLevel(i + 1, symbol, base, step),
+    }));
 
   const today = new Date().toLocaleDateString('en-US', {
     month: 'long',
@@ -99,7 +107,7 @@ export function renderHomeScreen(opts: {
           </div>
         </header>
 
-        ${renderLevelsGrid({ saved, perLevel })}
+        ${renderLevelsGrid({ saved, perLevel, levelRewards, symbol })}
 
         <div class="wq-home-footer">
           ${renderHowFlowAnimation(symbol)}

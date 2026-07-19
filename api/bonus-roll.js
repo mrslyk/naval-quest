@@ -5,8 +5,7 @@
 import { requireSession } from './lib/session.js';
 import { readBody } from './lib/http.js';
 import { kimiChat, parseJsonFromModel, kimiConfig } from './lib/kimi.js';
-import { levelRewardAmount } from './lib/economy.js';
-import { rewardAssetSymbol } from './lib/slyk.js';
+import { rewardAmountForLevel, rewardLabelForLevelNum } from './lib/economy.js';
 import { blobStore } from './lib/store.js';
 
 function shouldOffer(levelsCleared) {
@@ -46,8 +45,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ offer: false, reason: 'skip' });
   }
 
-  const bonusAmount = levelRewardAmount();
-  const symbol = rewardAssetSymbol();
+  const bonusAmount = rewardAmountForLevel(level);
+  const bonusLabel = rewardLabelForLevelNum(level);
 
   try {
     const { text } = await kimiChat({
@@ -89,7 +88,7 @@ Context: ${navalIntro || 'How to Get Rich'}`,
       hint: parsed?.hint || null,
       level,
       bonusAmount,
-      bonusLabel: `${bonusAmount} ${symbol}`,
+      bonusLabel,
       navalLine: 'Naval appears.',
     });
   } catch (err) {

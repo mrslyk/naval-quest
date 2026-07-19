@@ -4,7 +4,7 @@
 import { requireSession } from './lib/session.js';
 import { readBody } from './lib/http.js';
 import { kimiChat, parseJsonFromModel, kimiConfig } from './lib/kimi.js';
-import { levelRewardAmount } from './lib/economy.js';
+import { rewardAmountForLevel, rewardLabelForLevelNum } from './lib/economy.js';
 import {
   slykPost,
   getMasterWalletId,
@@ -151,7 +151,8 @@ Tweet-overlap heuristic: ${copyScore.toFixed(2)} (1.0 = identical)`,
       feedback = 'Too close to the original wording. Make the idea yours.';
     }
 
-    const amount = String(q.bonusAmount || levelRewardAmount());
+    const amountNum = Number(q.bonusAmount) || rewardAmountForLevel(q.level);
+    const amount = String(amountNum);
     let paid = false;
     let bonusLabel = null;
     let navLabel = null;
@@ -160,7 +161,7 @@ Tweet-overlap heuristic: ${copyScore.toFixed(2)} (1.0 = identical)`,
       try {
         await payBonus(session, amount, q.level, questionId);
         paid = true;
-        bonusLabel = `${amount} ${rewardAssetSymbol()}`;
+        bonusLabel = rewardLabelForLevelNum(q.level);
         const balances = await getWalletBalances(session.primaryWalletId);
         navLabel = `${Number(balanceOf(balances, rewardAssetCode()))} ${rewardAssetSymbol()}`;
         try {

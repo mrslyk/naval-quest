@@ -5,7 +5,7 @@ import { readSession, requireSession } from './lib/session.js';
 import { readBody } from './lib/http.js';
 import { readPlayer, savePlayerProgress } from './lib/store.js';
 import { loadProgress } from './lib/progress.js';
-import { levelRewardAmount } from './lib/economy.js';
+import { rewardAmountForLevel } from './lib/economy.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -54,7 +54,8 @@ export default async function handler(req, res) {
   else if (body.level != null) patch.levelsCleared = Number(body.level);
 
   if (body.recordLevelReward && !body.navDelta) {
-    patch.navDelta = Number(levelRewardAmount());
+    const lvl = Number(body.level || patch.levelsCleared || 1);
+    patch.navDelta = rewardAmountForLevel(lvl);
   }
 
   const saved = await savePlayerProgress(session.userId, patch);

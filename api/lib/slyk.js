@@ -71,6 +71,10 @@ export async function slykPost(path, body = {}) {
   return slykRequest('POST', path, { body });
 }
 
+export async function slykPatch(path, body = {}) {
+  return slykRequest('PATCH', path, { body });
+}
+
 export async function slykList(path, { page = 1, size = 20, filters = [] } = {}) {
   const params = {
     'page[number]': page,

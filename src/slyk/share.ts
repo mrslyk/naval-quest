@@ -23,7 +23,7 @@ export function shareMessage(data: PayspaceSnapshot | null): string {
   const referralLine = pct
     ? ` Invite friends — you earn ${pct}% of what they win.`
     : ' Invite friends and earn when they play.';
-  return `I'm playing Naval Quest — earn ${perLevel} per level you clear.${referralLine} ${buildShareUrl(data)}`;
+  return `I'm playing Naval Quest — earn rising ${symbol} rewards each level (from ${perLevel}).${referralLine} ${buildShareUrl(data)}`;
 }
 
 export async function copyShareLink(data: PayspaceSnapshot | null): Promise<boolean> {

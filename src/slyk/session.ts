@@ -21,10 +21,19 @@ export interface ShopItem {
   effect: string;
 }
 
+export interface LevelRewardRow {
+  level: number;
+  amount: number;
+  amountLabel: string;
+  band: string;
+}
+
 export interface EconomyMeta {
   rewardAsset: string;
   rewardSymbol: string;
   levelReward: string;
+  levelRewardStep?: string;
+  levelRewards?: LevelRewardRow[];
   shop: ShopItem[];
   sponsorTiers: Array<{ id: string; label: string; amountUsd: number; amountCents?: number }>;
   cashoutTargets: Array<{
