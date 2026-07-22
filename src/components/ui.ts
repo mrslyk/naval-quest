@@ -5,16 +5,27 @@ import { getNavalRichLevel, navAlSectionUrl, NAVAL_RICH_SOURCE_URL } from '../da
 import { renderPodcastPlayer } from './podcast-player';
 import { renderLevelMediaStrip } from './media-hub';
 
+const SLYK_BUILDER_URL =
+  (typeof import.meta !== 'undefined' &&
+    (import.meta as ImportMeta & { env?: Record<string, string> }).env?.VITE_SLYK_BUILDER_URL) ||
+  'https://slyk.io/launch';
+
 export function renderSlykDock(opts: { highlight?: boolean } = {}): string {
   const url = dashboardUrl();
   const cls = opts.highlight ? 'slyk-dock slyk-dock--highlight' : 'slyk-dock';
+  const year = new Date().getFullYear();
   return `
     <footer class="${cls}">
+      <p class="slyk-dock-powered">Powered by <a href="https://slyk.io" target="_blank" rel="noopener noreferrer">Slyk</a></p>
       <a class="slyk-dock-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
         <span class="slyk-dock-brand">Slyk</span>
         <span class="slyk-dock-sep">·</span>
         <span>Dashboard & rewards</span>
       </a>
+      <a class="slyk-dock-launch" href="${escapeHtml(SLYK_BUILDER_URL)}" target="_blank" rel="noopener noreferrer">
+        Launch your own learn-to-earn game
+      </a>
+      <p class="slyk-dock-copy">© ${year} Fintech Server Global. All rights reserved.</p>
     </footer>
   `;
 }

@@ -9,6 +9,13 @@ export function kimiConfig() {
   return { apiKey, baseUrl, model };
 }
 
+/** kimi-k3 (and some Moonshot variants) only accept temperature=1. */
+function resolveTemperature(model, requested) {
+  const m = String(model || '').toLowerCase();
+  if (m.includes('kimi-k3') || m.includes('k2.5') || m.includes('kimi-k2')) return 1;
+  return requested;
+}
+
 export async function kimiChat({
   system,
   user,
@@ -24,7 +31,7 @@ export async function kimiChat({
 
   const body = {
     model,
-    temperature,
+    temperature: resolveTemperature(model, temperature),
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: user },

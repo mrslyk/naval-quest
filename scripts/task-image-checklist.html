@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Naval Quest — Slyk task image checklist</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f4ef;
+        --ink: #1a1a1a;
+        --muted: #5c5c5c;
+        --line: #d9d2c7;
+        --accent: #0b6e4f;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+        background: radial-gradient(circle at top, #fffdf8, var(--bg));
+        color: var(--ink);
+        padding: 2rem 1.25rem 4rem;
+      }
+      main { max-width: 920px; margin: 0 auto; }
+      h1 { font-size: 1.75rem; margin: 0 0 0.35rem; }
+      p { color: var(--muted); line-height: 1.45; }
+      .note {
+        border: 1px solid var(--line);
+        background: #fff;
+        padding: 0.9rem 1rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toolbar { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
+      button {
+        font: inherit;
+        border: 1px solid var(--line);
+        background: #fff;
+        padding: 0.45rem 0.8rem;
+        cursor: pointer;
+      }
+      button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+      table { width: 100%; border-collapse: collapse; background: #fff; }
+      th, td { border-bottom: 1px solid var(--line); padding: 0.55rem 0.45rem; text-align: left; vertical-align: middle; }
+      th { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+      img { width: 40px; height: 40px; object-fit: contain; background: #f0ebe3; }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; }
+      .copied { color: var(--accent); font-size: 0.8rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Slyk task image checklist</h1>
+      <p>
+        Prefer <code>npm run sync:slyk</code> (API sets <code>media</code> as a URL string).
+        Use this page only if you need one-click copy for a manual dashboard paste.
+      </p>
+      <div class="note">
+        Live assets: <code>https://navalgame.netlify.app/rewards/level-NN.svg</code>
+      </div>
+      <div class="toolbar">
+        <button class="primary" id="copy-all" type="button">Copy all URLs</button>
+        <button id="copy-tsv" type="button">Copy TSV (level + URL)</button>
+        <span class="copied" id="status" hidden>Copied</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Preview</th>
+            <th>Task</th>
+            <th>Image URL</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </main>
+    <script>
+      const BASE = 'https://navalgame.netlify.app/rewards';
+      const rows = document.getElementById('rows');
+      const status = document.getElementById('status');
+      const urls = [];
+
+      function flash(msg) {
+        status.hidden = false;
+        status.textContent = msg;
+        setTimeout(() => { status.hidden = true; }, 1200);
+      }
+
+      async function copyText(text) {
+        await navigator.clipboard.writeText(text);
+        flash('Copied');
+      }
+
+      for (let level = 1; level <= 39; level++) {
+        const nn = String(level).padStart(2, '0');
+        const url = `${BASE}/level-${nn}.svg`;
+        urls.push(url);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><img src="${url}" alt="Level ${level}" loading="lazy" /></td>
+          <td>Naval Quest — Level ${level}</td>
+          <td><code>${url}</code></td>
+          <td><button type="button" data-url="${url}">Copy</button></td>
+        `;
+        rows.appendChild(tr);
+      }
+
+      rows.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-url]');
+        if (!btn) return;
+        copyText(btn.dataset.url);
+      });
+
+      document.getElementById('copy-all').addEventListener('click', () => copyText(urls.join('\n')));
+      document.getElementById('copy-tsv').addEventListener('click', () => {
+        const tsv = urls.map((url, i) => `${i + 1}\tNaval Quest — Level ${i + 1}\t${url}`).join('\n');
+        copyText(tsv);
+      });
+    </script>
+  </body>
+</html>

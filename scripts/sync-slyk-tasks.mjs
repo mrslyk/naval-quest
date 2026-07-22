@@ -1,28 +1,20 @@
 #!/usr/bin/env node
 /**
- * Sync Naval Quest level reward amounts (+ descriptions) onto Slyk automatic tasks.
+ * Sync Naval Quest level reward amounts, descriptions, and images onto Slyk tasks.
  *
  * Requires SLYK_API_KEY or SLYK_API_NAV (from .env or environment).
  *
  * Usage:
  *   npm run sync:rewards   # generate public/rewards/*.svg
- *   npm run sync:slyk      # PATCH amounts + descriptions
+ *   npm run sync:slyk      # PATCH amounts + descriptions + media images
  *   npm run sync:slyk -- --dry-run
+ *   npm run sync:slyk -- --images-only
  *
  * What the API can do:
  *   ✓ PATCH /tasks/:id { amount, description } — works for automatic tasks
+ *   ✓ PATCH /tasks/:id { media: "<public image URL>" } — string URI (not object)
  *   ✓ PATCH /assets/nvl { logo } — NAV wallet asset logo (public URL)
- *   ✗ PATCH /tasks/:id { image, thumbnail } — rejected for type=automatic
- *     (Slyk schema: additionalProperties — images only for system/manual tasks)
- *
- * Manual images (required for level tasks in the dashboard/wallet):
- *   1. Deploy so https://navalgame.netlify.app/rewards/level-XX.svg exists
- *   2. Open Slyk admin for naval → Tasks
- *   3. For each "Naval Quest — Level N" task → Edit → Image / Thumbnail
- *   4. Upload the matching SVG (or PNG export) from public/rewards/
- *      Or paste: https://navalgame.netlify.app/rewards/level-NN.svg
- *   5. Confirm Assets → NAV (nvl) logo already points at
- *      https://navalgame.netlify.app/rewards/nav-logo.svg (set by this script)
+ *   ✗ PATCH /tasks/:id { image, thumbnail } — rejected (use `media` instead)
  *
  * Amount schedule: amount = base + (level-1)*step (default 10 + (N-1)*1 → L1=10 … L39=48)
  */
@@ -56,6 +48,7 @@ function loadEnvFile() {
 loadEnvFile();
 
 const DRY = process.argv.includes('--dry-run');
+const IMAGES_ONLY = process.argv.includes('--images-only');
 const TOTAL = 39;
 const API_KEY = process.env.SLYK_API_KEY || process.env.SLYK_API_NAV;
 const HOST = process.env.SLYK_API_HOST || 'api.slyk.io';
@@ -155,9 +148,10 @@ async function main() {
     `Reward schedule: base=${BASE} step=${STEP} → L1=${amountFor(1)} … L${TOTAL}=${amountFor(TOTAL)} ${SYMBOL}`
   );
   console.log(
-    'Note: automatic tasks cannot set image/thumbnail via API — set those in the Slyk dashboard.'
+    'Images: PATCH { media: "<url>" } (string URI). image/thumbnail fields are rejected.'
   );
   if (DRY) console.log('DRY RUN — no PATCH calls\n');
+  if (IMAGES_ONLY) console.log('IMAGES ONLY — skip amount/description\n');
 
   const tasks = await listAllTasks();
   const automatic = tasks.filter((t) => t.type === 'automatic' && t.enabled !== false);
@@ -191,8 +185,11 @@ async function main() {
     }
     const amount = String(amountFor(level));
     const description = `Clear level ${level} of Naval Quest · +${amount} ${SYMBOL}`;
-    const body = { amount, description };
-    console.log(`L${level} ${task.id}: amount=${amount}  (image: set manually → ${imageUrl(level)})`);
+    const media = imageUrl(level);
+    const body = IMAGES_ONLY ? { media } : { amount, description, media };
+    console.log(
+      `L${level} ${task.id}: ${IMAGES_ONLY ? '' : `amount=${amount} `}media=${media}`
+    );
     if (DRY) {
       ok += 1;
       continue;
@@ -222,9 +219,6 @@ async function main() {
     console.warn(`\nMissing tasks for levels: ${missing.join(', ')}`);
   }
   console.log(`\nDone: ${ok} updated, ${fail} failed, ${missing.length} missing`);
-  console.log('\nManual task images (API blocked for automatic tasks):');
-  console.log('  Slyk admin → Tasks → each Level N → Image/Thumbnail');
-  console.log(`  Use ${PUBLIC_BASE}/rewards/level-NN.svg (or upload from public/rewards/)`);
   if (fail) process.exit(1);
 }
 

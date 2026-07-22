@@ -73,7 +73,9 @@ npm run preview
 3. **Environment variables** — copy from `.env.example` into Netlify → Site settings → Environment variables:
    - `SLYK_API_KEY` (required, server-only)
    - `VITE_SLYK_DASHBOARD_URL`, `VITE_SLYK_PAYSPACE_ORIGIN`, `VITE_SLYK_API_HOST`
-   - `NAVAL_GAME_ORIGIN` → your Netlify URL (e.g. `https://naval-quest.netlify.app`)
+   - `NAVAL_GAME_ORIGIN` → `https://navalgame.netlify.app`
+   - `SLYK_API_NAV` (alias for `SLYK_API_KEY`), `KMI_NAV_API` / `MOONSHOT_API_KEY` for Naval AI bonuses
+   - Stripe live keys for patron checkout (`STRIPE_SECRET_KEY`, webhook secret)
    - `SLYK_PAYSPACE_ORIGIN`, `NAVAL_REWARD_ASSET`, etc.
 4. **Deploy** — Netlify runs `npm run build` and serves the SPA; `/api/*` routes hit the Netlify Function.
 
