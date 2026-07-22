@@ -25,6 +25,7 @@ function navalQuestApiPlugin(env: Record<string, string>): Plugin {
 function applyEnv(env: Record<string, string>) {
   const keys = [
     'SLYK_API_KEY',
+    'SLYK_API_NAV',
     'SLYK_API_HOST',
     'SLYK_PAYSPACE_ORIGIN',
     'SLYK_PAYSPACE_SLUG',
@@ -42,6 +43,7 @@ function applyEnv(env: Record<string, string>) {
     'STRIPE_WEBHOOK_SECRET',
     'MOONSHOT_API_KEY',
     'KIMI_API_KEY',
+    'KMI_NAV_API',
     'KIMI_BASE_URL',
     'KIMI_MODEL',
   ];

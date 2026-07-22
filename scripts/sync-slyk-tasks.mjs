@@ -2,7 +2,7 @@
 /**
  * Sync Naval Quest level reward amounts (+ descriptions) onto Slyk automatic tasks.
  *
- * Requires SLYK_API_KEY (from .env or environment).
+ * Requires SLYK_API_KEY or SLYK_API_NAV (from .env or environment).
  *
  * Usage:
  *   npm run sync:rewards   # generate public/rewards/*.svg
@@ -57,7 +57,7 @@ loadEnvFile();
 
 const DRY = process.argv.includes('--dry-run');
 const TOTAL = 39;
-const API_KEY = process.env.SLYK_API_KEY;
+const API_KEY = process.env.SLYK_API_KEY || process.env.SLYK_API_NAV;
 const HOST = process.env.SLYK_API_HOST || 'api.slyk.io';
 const ASSET = process.env.NAVAL_REWARD_ASSET || 'nvl';
 const SYMBOL = process.env.NAVAL_REWARD_SYMBOL || 'NAV';
@@ -145,7 +145,7 @@ async function listAllTasks() {
 
 async function main() {
   if (!API_KEY) {
-    console.error('SLYK_API_KEY missing. Set it in .env or the environment.');
+    console.error('SLYK_API_KEY / SLYK_API_NAV missing. Set one in .env or the environment.');
     console.error('Manual image steps: see header comment in this script.');
     process.exit(1);
   }

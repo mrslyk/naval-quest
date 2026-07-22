@@ -3,7 +3,7 @@
  */
 
 export function getSlykConfig() {
-  const apiKey = process.env.SLYK_API_KEY;
+  const apiKey = process.env.SLYK_API_KEY || process.env.SLYK_API_NAV;
   const host = process.env.SLYK_API_HOST || 'api.slyk.io';
   return { apiKey, host };
 }

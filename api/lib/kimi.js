@@ -2,7 +2,8 @@
  * Kimi (Moonshot) OpenAI-compatible chat client.
  */
 export function kimiConfig() {
-  const apiKey = process.env.MOONSHOT_API_KEY || process.env.KIMI_API_KEY;
+  const apiKey =
+    process.env.MOONSHOT_API_KEY || process.env.KIMI_API_KEY || process.env.KMI_NAV_API;
   const baseUrl = (process.env.KIMI_BASE_URL || 'https://api.moonshot.ai/v1').replace(/\/$/, '');
   const model = process.env.KIMI_MODEL || 'kimi-k3';
   return { apiKey, baseUrl, model };
