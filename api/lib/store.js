@@ -5,9 +5,12 @@ import { getStore } from '@netlify/blobs';
 
 const STORE_NAME = 'naval-quest';
 
+let memorySingleton = null;
+
 function memoryStore() {
+  if (memorySingleton) return memorySingleton;
   const data = new Map();
-  return {
+  memorySingleton = {
     async get(key, opts = {}) {
       const raw = data.get(key);
       if (raw == null) return null;
@@ -21,7 +24,7 @@ function memoryStore() {
       return raw;
     },
     async set(key, value) {
-      data.set(key, value);
+      data.set(key, typeof value === 'string' ? value : String(value));
     },
     async setJSON(key, obj) {
       data.set(key, JSON.stringify(obj));
@@ -33,11 +36,30 @@ function memoryStore() {
       return { blobs };
     },
   };
+  return memorySingleton;
+}
+
+function hasNetlifyBlobsContext() {
+  return Boolean(
+    process.env.NETLIFY ||
+      process.env.NETLIFY_BLOBS_CONTEXT ||
+      process.env.BLOBS_TOKEN ||
+      (process.env.NETLIFY_SITE_ID && process.env.NETLIFY_AUTH_TOKEN)
+  );
 }
 
 export async function blobStore() {
+  if (!hasNetlifyBlobsContext()) {
+    return memoryStore();
+  }
+
   try {
-    return getStore({ name: STORE_NAME, consistency: 'strong' });
+    const opts = { name: STORE_NAME, consistency: 'strong' };
+    if (process.env.NETLIFY_SITE_ID && process.env.NETLIFY_AUTH_TOKEN) {
+      opts.siteID = process.env.NETLIFY_SITE_ID;
+      opts.token = process.env.NETLIFY_AUTH_TOKEN;
+    }
+    return getStore(opts);
   } catch {
     return memoryStore();
   }
