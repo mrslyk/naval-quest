@@ -66,9 +66,11 @@ function showFeedback(el: HTMLElement, correct: boolean, message?: string): void
 
   const toast = document.createElement('div');
   toast.className = `feedback-toast ${correct ? 'correct' : 'wrong'}`;
-  toast.textContent = message ?? (correct ? '✓ Correct' : 'Try again');
+  toast.textContent =
+    message ??
+    (correct ? '✓ Nice — keep going' : 'Not quite — reread the tweet and try again');
   el.appendChild(toast);
-  setTimeout(() => toast.remove(), correct ? 600 : 1400);
+  setTimeout(() => toast.remove(), correct ? 700 : 1600);
 
   if (correct) noteCorrect(el);
 }
@@ -170,10 +172,10 @@ function mountSort(container: HTMLElement, onComplete: LevelCompleteCallback): v
     for (let i = 0; i < newlyCorrect; i++) noteCorrect(levelEl);
 
     if (allPlaced && allCorrect) {
-      showFeedback(levelEl, true, 'Sorted!');
+      showFeedback(levelEl, true, 'Sorted — each jar matches Naval’s definitions');
       setTimeout(onComplete, 700);
     } else if (allPlaced) {
-      showFeedback(levelEl, false, 'Some items are in the wrong bucket');
+      showFeedback(levelEl, false, 'Check the buckets again — one or more items are off');
     }
   }
 }

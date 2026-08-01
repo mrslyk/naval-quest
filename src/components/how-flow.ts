@@ -7,11 +7,11 @@ export function renderHowFlowAnimation(symbol: string): string {
       <ul class="wq-howto-list">
         <li>
           <span class="wq-tile wq-tile--sm wq-tile--correct"><span class="wq-tile-letter">W</span></span>
-          <p><strong>Play</strong> one Naval tweet per level — ${escapeHtml(symbol)} for each clear.</p>
+          <p><strong>Sign up</strong> free — required to play and earn ${escapeHtml(symbol)}.</p>
         </li>
         <li>
           <span class="wq-tile wq-tile--sm wq-tile--present"><span class="wq-tile-letter">E</span></span>
-          <p><strong>Learn</strong> with podcast clips and Naval’s own words.</p>
+          <p><strong>Play</strong> one Naval tweet per level; learn with podcast clips.</p>
         </li>
         <li>
           <span class="wq-tile wq-tile--sm wq-tile--absent"><span class="wq-tile-letter">A</span></span>

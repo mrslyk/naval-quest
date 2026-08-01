@@ -34,9 +34,20 @@ import { renderCashoutPage } from '../pages/cashout';
 import { renderVideosPage } from '../pages/videos';
 import { renderStatsBoard, renderSponsorThanks } from '../components/stats-board';
 import { renderNavalBonusModal } from '../components/naval-bonus';
+import { toastError, toastInfo, toastSuccess, toastWarn } from '../components/toast';
 import { applyDifficulty, difficultyLabel } from './difficulty';
+import {
+  AUTH_CASHOUT_REASON,
+  AUTH_PLAY_REASON,
+  tipForLevelType,
+} from './play-tips';
 
 type Screen = 'home' | 'sponsor' | 'how' | 'videos' | 'cashout' | 'level' | 'complete';
+type PendingAfterAuth =
+  | null
+  | { kind: 'play' }
+  | { kind: 'level'; index: number }
+  | { kind: 'cashout' };
 
 export class Game {
   private root: HTMLElement;
@@ -45,10 +56,14 @@ export class Game {
   private phase: 'intro' | 'playing' | 'success' = 'intro';
   private me: MeResponse | null = null;
   private authMode: 'login' | 'signup' | null = null;
+  private authReason: string | null = null;
+  private pendingAfterAuth: PendingAfterAuth = null;
   private levelBoost: { hint?: string; reveal?: boolean } = {};
   private gameStats: GameStats | null = null;
   private statsLoading = true;
   private sponsorBanner: string | null = null;
+  private shopTipShown = false;
+  private guidedTipKey: string | null = null;
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -95,7 +110,81 @@ export class Game {
   private go(screen: Screen): void {
     this.screen = screen;
     this.authMode = null;
+    this.authReason = null;
     this.render();
+  }
+
+  private isSignedIn(): boolean {
+    return Boolean(this.me?.user);
+  }
+
+  private requireAuth(
+    reason: string,
+    pending: PendingAfterAuth = { kind: 'play' },
+    mode: 'login' | 'signup' = 'signup'
+  ): boolean {
+    if (this.isSignedIn()) return true;
+    this.pendingAfterAuth = pending;
+    this.authReason = reason;
+    this.authMode = mode;
+    toastWarn(reason, 4200);
+    this.render();
+    return false;
+  }
+
+  private startPlayAt(index?: number): void {
+    if (!this.isSignedIn()) {
+      this.requireAuth(
+        AUTH_PLAY_REASON,
+        index != null ? { kind: 'level', index } : { kind: 'play' }
+      );
+      return;
+    }
+    this.screen = 'level';
+    this.currentLevel = index ?? loadProgress();
+    this.phase = 'intro';
+    this.levelBoost = {};
+    this.shopTipShown = false;
+    this.guidedTipKey = null;
+    toastInfo(
+      this.currentLevel > 0
+        ? `Welcome back — resume at tweet ${Math.min(this.currentLevel + 1, TOTAL_LEVELS)}.`
+        : 'You’re in. Read Naval’s tweet, then tap Play this level.',
+      3200
+    );
+    this.render();
+  }
+
+  private guideOnce(
+    key: string,
+    message: string,
+    ms = 3400,
+    kind: 'info' | 'success' | 'warn' = 'info'
+  ): void {
+    if (this.guidedTipKey === key) return;
+    this.guidedTipKey = key;
+    if (kind === 'success') toastSuccess(message, ms);
+    else if (kind === 'warn') toastWarn(message, ms);
+    else toastInfo(message, ms);
+  }
+
+  private resumePendingAfterAuth(): void {
+    const pending = this.pendingAfterAuth;
+    this.pendingAfterAuth = null;
+    if (!pending) {
+      this.render();
+      return;
+    }
+    if (pending.kind === 'cashout') {
+      this.go('cashout');
+      toastInfo('You’re signed in. Convert NAV → BTC when you’re ready.', 3200);
+      return;
+    }
+    if (pending.kind === 'level') {
+      this.startPlayAt(pending.index);
+      return;
+    }
+    this.startPlayAt();
   }
 
   private async refreshMe(): Promise<void> {
@@ -110,39 +199,48 @@ export class Game {
     bindTopNav(this.root, {
       onHome: () => this.go('home'),
       onPlay: () => {
-        this.screen = 'level';
-        this.currentLevel = loadProgress();
-        this.phase = 'intro';
-        this.levelBoost = {};
-        this.render();
+        if (!this.requireAuth(AUTH_PLAY_REASON, { kind: 'play' })) return;
+        this.startPlayAt();
       },
       onVideos: () => this.go('videos'),
       onSponsor: () => this.go('sponsor'),
       onHow: () => this.go('how'),
     });
-    this.root.querySelector('#nav-cashout')?.addEventListener('click', () => this.go('cashout'));
+    this.root.querySelector('#nav-cashout')?.addEventListener('click', () => {
+      if (!this.requireAuth(AUTH_CASHOUT_REASON, { kind: 'cashout' })) return;
+      this.go('cashout');
+    });
     this.bindAuthChrome();
   }
 
   private bindAuthChrome(): void {
     this.root.querySelector('#btn-auth-login')?.addEventListener('click', () => {
       this.authMode = 'login';
+      this.authReason = this.authReason || 'Log in to continue playing and keep your NAV rewards.';
       this.render();
     });
     this.root.querySelector('#btn-auth-signup')?.addEventListener('click', () => {
       this.authMode = 'signup';
+      this.authReason = this.authReason || AUTH_PLAY_REASON;
+      if (!this.pendingAfterAuth && this.screen === 'home') {
+        this.pendingAfterAuth = { kind: 'play' };
+      }
       this.render();
     });
     this.root.querySelector('#btn-auth-logout')?.addEventListener('click', async () => {
       await logout();
       this.me = await fetchMe(true);
-      this.render();
+      this.pendingAfterAuth = null;
+      toastInfo('Signed out. Sign in again whenever you’re ready to play.', 2800);
+      this.go('home');
     });
 
     if (!this.authMode) return;
 
     this.root.querySelector('#auth-close')?.addEventListener('click', () => {
       this.authMode = null;
+      this.authReason = null;
+      this.pendingAfterAuth = null;
       this.render();
     });
     this.root.querySelector('#auth-switch-login')?.addEventListener('click', () => {
@@ -159,9 +257,15 @@ export class Game {
       const form = e.target as HTMLFormElement;
       const fd = new FormData(form);
       const errEl = this.root.querySelector('#auth-error') as HTMLElement | null;
+      const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+      if (submit) {
+        submit.disabled = true;
+        submit.textContent = this.authMode === 'signup' ? 'Creating account…' : 'Signing in…';
+      }
       try {
         const ctx = getSlykContext();
-        if (this.authMode === 'signup') {
+        const wasSignup = this.authMode === 'signup';
+        if (wasSignup) {
           this.me = await signup({
             name: String(fd.get('name') || ''),
             email: String(fd.get('email') || ''),
@@ -175,11 +279,24 @@ export class Game {
           });
         }
         this.authMode = null;
-        this.render();
+        this.authReason = null;
+        toastSuccess(
+          wasSignup
+            ? 'Account ready — let’s play. Clear levels to earn NAV.'
+            : `Welcome back${this.me?.user?.name ? `, ${this.me.user.name}` : ''}.`,
+          3600
+        );
+        this.resumePendingAfterAuth();
       } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Auth failed';
         if (errEl) {
           errEl.hidden = false;
-          errEl.textContent = err instanceof Error ? err.message : 'Auth failed';
+          errEl.textContent = msg;
+        }
+        toastError(msg);
+        if (submit) {
+          submit.disabled = false;
+          submit.textContent = this.authMode === 'signup' ? 'Sign up & play' : 'Log in & play';
         }
       }
     });
@@ -187,7 +304,7 @@ export class Game {
 
   private withAuthModal(html: string): string {
     if (!this.authMode) return html;
-    return `${html}${renderAuthModal(this.authMode)}`;
+    return `${html}${renderAuthModal(this.authMode, { reason: this.authReason ?? undefined })}`;
   }
 
   private render(): void {
@@ -226,35 +343,40 @@ export class Game {
         sponsorThanks: this.sponsorBanner === 'thanks' ? renderSponsorThanks() : '',
       })
     );
+    if (this.sponsorBanner === 'thanks') {
+      toastSuccess('Sponsorship received — thank you for fueling the prize pool.', 4000);
+    }
     this.sponsorBanner = null;
     this.bindNav();
     const startPlay = () => {
-      this.screen = 'level';
-      this.currentLevel = loadProgress();
-      this.phase = 'intro';
-      this.levelBoost = {};
-      this.render();
+      if (!this.requireAuth(AUTH_PLAY_REASON, { kind: 'play' })) return;
+      this.startPlayAt();
     };
     this.root.querySelector('#btn-start')?.addEventListener('click', startPlay);
     this.root.querySelector('#btn-start-2')?.addEventListener('click', startPlay);
     this.root.querySelector('#btn-sponsor-home')?.addEventListener('click', () => this.go('sponsor'));
     this.root.querySelector('#btn-sponsor-hero')?.addEventListener('click', () => this.go('sponsor'));
-    this.root.querySelector('#btn-cashout-home')?.addEventListener('click', () => this.go('cashout'));
+    this.root.querySelector('#btn-cashout-home')?.addEventListener('click', () => {
+      if (!this.requireAuth(AUTH_CASHOUT_REASON, { kind: 'cashout' })) return;
+      this.go('cashout');
+    });
     this.root.querySelector('#btn-videos-home')?.addEventListener('click', () => this.go('videos'));
     this.root.querySelector('#btn-reset')?.addEventListener('click', () => {
+      if (!this.isSignedIn()) {
+        toastWarn('Sign in first — then you can reset your local progress.', 3200);
+        return;
+      }
       resetProgress();
       this.currentLevel = 0;
+      toastInfo('Progress reset. Start again from tweet 1.', 2800);
       this.renderHome();
     });
     this.root.querySelectorAll('.lg-row:not(.lg-row--locked)').forEach((row) => {
       const goLevel = () => {
         const idx = Number((row as HTMLElement).dataset.levelIndex);
         if (Number.isNaN(idx)) return;
-        this.screen = 'level';
-        this.currentLevel = idx;
-        this.phase = 'intro';
-        this.levelBoost = {};
-        this.render();
+        if (!this.requireAuth(AUTH_PLAY_REASON, { kind: 'level', index: idx })) return;
+        this.startPlayAt(idx);
       };
       row.addEventListener('click', goLevel);
       row.addEventListener('keydown', (e) => {
@@ -262,6 +384,16 @@ export class Game {
           e.preventDefault();
           goLevel();
         }
+      });
+    });
+    this.root.querySelectorAll('.lg-row--locked').forEach((row) => {
+      row.addEventListener('click', () => {
+        toastInfo(
+          this.isSignedIn()
+            ? 'Clear the previous tweets first — levels unlock in order.'
+            : 'Sign up to play. Levels unlock in order as you clear them.',
+          3200
+        );
       });
     });
   }
@@ -286,9 +418,17 @@ export class Game {
       e.preventDefault();
       const fd = new FormData(e.target as HTMLFormElement);
       const err = this.root.querySelector('#sponsor-error') as HTMLElement | null;
+      const submit = (e.target as HTMLFormElement).querySelector(
+        'button[type="submit"]'
+      ) as HTMLButtonElement | null;
+      if (submit) {
+        submit.disabled = true;
+        submit.textContent = 'Opening Stripe…';
+      }
       try {
         const tierId = String(fd.get('tierId') || '');
         const customAmount = fd.get('customAmount') ? Number(fd.get('customAmount')) : undefined;
+        toastInfo('Redirecting to Stripe Checkout…', 2400);
         const result = await createSponsorCheckout({
           tierId,
           customAmount,
@@ -299,10 +439,18 @@ export class Game {
           window.location.href = result.url;
           return;
         }
+        toastError('Checkout did not return a URL. Try again.');
       } catch (ex) {
+        const msg = ex instanceof Error ? ex.message : 'Checkout failed';
         if (err) {
           err.hidden = false;
-          err.textContent = ex instanceof Error ? ex.message : 'Checkout failed';
+          err.textContent = msg;
+        }
+        toastError(msg);
+      } finally {
+        if (submit) {
+          submit.disabled = false;
+          submit.textContent = 'Continue to secure checkout →';
         }
       }
     });
@@ -310,14 +458,14 @@ export class Game {
 
   private renderHow(): void {
     const gameComplete = loadProgress() >= TOTAL_LEVELS;
-    this.root.innerHTML = this.withAuthModal(renderHowItWorksPage(null, gameComplete));
+    this.root.innerHTML = this.withAuthModal(
+      renderHowItWorksPage(null, gameComplete, this.isSignedIn())
+    );
     this.bindNav();
     this.root.querySelector('#how-goto-sponsor')?.addEventListener('click', () => this.go('sponsor'));
     this.root.querySelector('#how-play')?.addEventListener('click', () => {
-      this.screen = 'level';
-      this.currentLevel = loadProgress();
-      this.phase = 'intro';
-      this.render();
+      if (!this.requireAuth(AUTH_PLAY_REASON, { kind: 'play' })) return;
+      this.startPlayAt();
     });
     this.root.querySelector('#how-goto-home')?.addEventListener('click', () => this.go('home'));
     this.root.querySelector('#how-goto-videos')?.addEventListener('click', () => this.go('videos'));
@@ -325,14 +473,36 @@ export class Game {
   }
 
   private renderCashout(): void {
-    this.root.innerHTML = this.withAuthModal(renderCashoutPage(this.me, loadProgress()));
+    const progress = loadProgress();
+    this.root.innerHTML = this.withAuthModal(renderCashoutPage(this.me, progress));
     this.bindNav();
+
+    if (!this.isSignedIn()) {
+      this.root.querySelector('#btn-auth-signup')?.addEventListener('click', () => {
+        this.requireAuth(AUTH_CASHOUT_REASON, { kind: 'cashout' });
+      });
+      return;
+    }
+
+    if (progress < TOTAL_LEVELS) {
+      toastInfo(
+        `Withdrawal unlocks after all ${TOTAL_LEVELS} levels (you’re at ${progress}). You can still convert NAV → BTC now.`,
+        4500
+      );
+    }
 
     this.root.querySelector('#exchange-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target as HTMLFormElement);
       const err = this.root.querySelector('#exchange-error') as HTMLElement | null;
       const ok = this.root.querySelector('#exchange-ok') as HTMLElement | null;
+      const submit = (e.target as HTMLFormElement).querySelector(
+        'button[type="submit"]'
+      ) as HTMLButtonElement | null;
+      if (submit) {
+        submit.disabled = true;
+        submit.textContent = 'Converting…';
+      }
       try {
         const amount = String(fd.get('amount') || '');
         const result = await exchange(amount || undefined);
@@ -341,21 +511,39 @@ export class Game {
           ok.textContent = `Converted → ${result.receivedLabel}`;
         }
         if (err) err.hidden = true;
+        toastSuccess(`Converted to ${result.receivedLabel}. Next: withdraw via Coinbase.`, 4000);
         await this.refreshMe();
         this.renderCashout();
       } catch (ex) {
+        const msg = ex instanceof Error ? ex.message : 'Convert failed';
         if (err) {
           err.hidden = false;
-          err.textContent = ex instanceof Error ? ex.message : 'Convert failed';
+          err.textContent = msg;
+        }
+        toastError(msg);
+        if (submit) {
+          submit.disabled = false;
+          submit.textContent = 'Convert to BTC';
         }
       }
     });
 
     this.root.querySelector('#withdraw-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (progress < TOTAL_LEVELS) {
+        toastWarn(`Finish all ${TOTAL_LEVELS} levels before withdrawing BTC.`, 3800);
+        return;
+      }
       const fd = new FormData(e.target as HTMLFormElement);
       const err = this.root.querySelector('#withdraw-error') as HTMLElement | null;
       const ok = this.root.querySelector('#withdraw-ok') as HTMLElement | null;
+      const submit = (e.target as HTMLFormElement).querySelector(
+        'button[type="submit"]'
+      ) as HTMLButtonElement | null;
+      if (submit) {
+        submit.disabled = true;
+        submit.textContent = 'Submitting…';
+      }
       try {
         const amount = String(fd.get('amount') || '');
         const result = await withdraw({
@@ -368,11 +556,18 @@ export class Game {
           ok.textContent = result.message;
         }
         if (err) err.hidden = true;
+        toastSuccess(result.message || 'Withdrawal submitted via Coinbase.', 4200);
         await this.refreshMe();
       } catch (ex) {
+        const msg = ex instanceof Error ? ex.message : 'Withdraw failed';
         if (err) {
           err.hidden = false;
-          err.textContent = ex instanceof Error ? ex.message : 'Withdraw failed';
+          err.textContent = msg;
+        }
+        toastError(msg);
+        if (submit) {
+          submit.disabled = false;
+          submit.textContent = 'Withdraw via Coinbase';
         }
       }
     });
@@ -382,6 +577,12 @@ export class Game {
     null;
 
   private renderLevel(): void {
+    if (!this.isSignedIn()) {
+      this.screen = 'home';
+      this.requireAuth(AUTH_PLAY_REASON, { kind: 'play' });
+      return;
+    }
+
     const level = TWEET_LEVELS_ALL[this.currentLevel];
     if (!level) {
       this.screen = 'complete';
@@ -461,9 +662,15 @@ export class Game {
     if (isIntro) {
       this.root.querySelector('#btn-begin')?.addEventListener('click', () => {
         this.phase = 'playing';
+        this.guidedTipKey = null;
         this.renderLevel();
         this.startChallenge();
       });
+      this.guideOnce(
+        `intro-${level.id}`,
+        'Read the tweet, then tap Play this level when you’re ready.',
+        2800
+      );
     } else if (!isSuccess) {
       this.startChallenge();
     }
@@ -472,21 +679,24 @@ export class Game {
   private async buyHelp(itemId: string): Promise<void> {
     const level = TWEET_LEVELS_ALL[this.currentLevel];
     if (!this.me?.user) {
-      this.authMode = 'signup';
-      this.render();
+      this.requireAuth(AUTH_PLAY_REASON, { kind: 'level', index: this.currentLevel });
       return;
     }
     try {
+      toastInfo('Spending NAV…', 1600);
       const result = await spend(itemId, level?.id);
       clearMeCache();
       await this.refreshMe();
 
       if (result.effect === 'hint') {
         this.levelBoost.hint = level?.navalHint || 'Look for the pattern Naval describes.';
+        toastSuccess(`Naval whisper unlocked (−${result.spentLabel}).`, 3200);
       } else if (result.effect === 'reveal') {
         this.levelBoost.reveal = true;
         this.levelBoost.hint = level?.navalSuccess || 'Follow the tweet.';
+        toastSuccess(`Answer revealed (−${result.spentLabel}). Completing the level…`, 3200);
       } else if (result.effect === 'skip') {
+        toastSuccess(`Level skipped (−${result.spentLabel}). Still earning the clear reward.`, 3600);
         await this.onLevelComplete(true);
         return;
       }
@@ -494,7 +704,7 @@ export class Game {
       const bal = this.root.querySelector('#wallet-nav-balance');
       if (bal) bal.textContent = result.navLabel;
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Purchase failed');
+      toastError(err instanceof Error ? err.message : 'Purchase failed');
     }
   }
 
@@ -513,6 +723,13 @@ export class Game {
     const badge = this.root.querySelector('.tweet-play-kicker');
     if (badge) {
       badge.textContent = `Tweet ${level.id} · ${difficultyLabel(level.id)} · Build the lesson`;
+    }
+    this.guideOnce(`play-${level.id}-${level.type}`, tipForLevelType(level.type), 3800);
+    if (!this.shopTipShown && (this.me?.economy?.shop?.length ?? 0) > 0) {
+      this.shopTipShown = true;
+      window.setTimeout(() => {
+        toastInfo('Stuck? Spend NAV for a whisper, reveal, or skip.', 3600);
+      }, 4200);
     }
     mountLevel(canvas, scaled, () => this.onLevelComplete(false));
   }
@@ -547,12 +764,19 @@ export class Game {
 
     const closeAndAdvance = () => this.advanceAfterLevel(level);
 
-    this.root.querySelector('#naval-bonus-skip')?.addEventListener('click', closeAndAdvance);
+    this.root.querySelector('#naval-bonus-skip')?.addEventListener('click', () => {
+      toastInfo('Bonus skipped — on to the next tweet.', 2600);
+      closeAndAdvance();
+    });
 
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(form);
       const answer = String(fd.get('answer') || '').trim();
+      if (answer.length < 12) {
+        toastWarn('Say it in your own words — at least a full sentence.', 3200);
+        return;
+      }
       if (err) err.hidden = true;
       if (ok) ok.hidden = true;
       if (submit) {
@@ -566,6 +790,12 @@ export class Game {
             ok.hidden = false;
             ok.textContent = `${result.feedback} +${result.bonusLabel || offer.bonusLabel}`;
           }
+          toastSuccess(
+            result.bonusLabel || offer.bonusLabel
+              ? `${result.feedback} +${result.bonusLabel || offer.bonusLabel}`
+              : result.feedback || 'Naval agrees.',
+            3800
+          );
           await this.refreshMe();
           setTimeout(closeAndAdvance, 1600);
         } else {
@@ -573,6 +803,7 @@ export class Game {
             err.hidden = false;
             err.textContent = result.feedback || 'Not quite.';
           }
+          toastWarn(result.feedback || 'Not quite — try once more in your own words.', 3600);
           if (submit) {
             submit.disabled = false;
             submit.textContent = 'Try once more';
@@ -580,14 +811,17 @@ export class Game {
           // One more try, then skip advances
           form.dataset.tries = String(Number(form.dataset.tries || 0) + 1);
           if (Number(form.dataset.tries) >= 2) {
+            toastInfo('Moving on — keep the lesson, chase the next tweet.', 3200);
             setTimeout(closeAndAdvance, 1800);
           }
         }
       } catch (ex) {
+        const msg = ex instanceof Error ? ex.message : 'Could not score answer';
         if (err) {
           err.hidden = false;
-          err.textContent = ex instanceof Error ? ex.message : 'Could not score answer';
+          err.textContent = msg;
         }
+        toastError(msg);
         if (submit) {
           submit.disabled = false;
           submit.textContent = 'Answer Naval';
@@ -599,12 +833,24 @@ export class Game {
   private async onLevelComplete(fromShop: boolean): Promise<void> {
     const level = TWEET_LEVELS_ALL[this.currentLevel];
     this.phase = 'success';
+    this.guidedTipKey = null;
 
     this.phraseProgress?.unlockAll();
     signalUnlockAll(this.root);
 
+    toastInfo(fromShop ? 'Applying boost…' : 'Tweet cleared — claiming NAV…', 2200);
     const reward = await notifyLevelComplete(level?.id ?? this.currentLevel + 1);
     await this.refreshMe();
+
+    if (reward.state === 'sent' && reward.amountLabel) {
+      toastSuccess(`+${reward.amountLabel} added to your wallet.`, 3600);
+    } else if (reward.state === 'sent') {
+      toastSuccess(reward.message || 'Level reward recorded.', 3200);
+    } else if (reward.state === 'needs_account') {
+      toastWarn(reward.message || 'Sign in to earn NAV for clears.', 3800);
+    } else if (reward.state === 'error' && reward.message) {
+      toastError(reward.message);
+    }
 
     this.renderLevel();
     this.phraseProgress?.unlockAll();
@@ -624,7 +870,7 @@ export class Game {
         <p class="sheet-text">${level?.navalSuccess ?? ''}</p>
         <div class="sheet-actions">
           <button class="btn-primary" id="btn-next" type="button">
-            ${this.currentLevel + 1 >= TOTAL_LEVELS ? 'Finish' : 'Next tweet'}
+            ${this.currentLevel + 1 >= TOTAL_LEVELS ? 'Finish quest' : 'Next tweet'}
           </button>
         </div>
       </div>
@@ -633,8 +879,7 @@ export class Game {
     requestAnimationFrame(() => sheet.classList.add('sheet--visible'));
 
     sheet.querySelector('#btn-auth-signup')?.addEventListener('click', () => {
-      this.authMode = 'signup';
-      this.render();
+      this.requireAuth(AUTH_PLAY_REASON, { kind: 'level', index: this.currentLevel });
     });
 
     const goNext = () => this.advanceAfterLevel(level);
@@ -648,7 +893,7 @@ export class Game {
       const nextBtn = sheet.querySelector('#btn-next') as HTMLButtonElement | null;
       if (nextBtn) {
         nextBtn.disabled = true;
-        nextBtn.textContent = '…';
+        nextBtn.textContent = 'Checking for Naval…';
       }
       try {
         const roll = await rollNavalBonus({
@@ -658,6 +903,7 @@ export class Game {
           navalIntro: level.navalIntro,
         });
         if (roll.offer && roll.questionId && roll.question && roll.bonusLabel) {
+          toastInfo(`Naval appears — answer for a chance at +${roll.bonusLabel}.`, 3600);
           this.root.insertAdjacentHTML(
             'beforeend',
             renderNavalBonusModal({
@@ -700,7 +946,7 @@ export class Game {
           </blockquote>
           <p class="end-cite">Tweet 38 · Naval Ravikant</p>
           ${renderLevelRewardBlock(reward)}
-          <p class="lede lede--dim">Your NAV balance is ready. Convert to fiat or crypto and withdraw.</p>
+          <p class="lede lede--dim">Your NAV balance is ready. Convert to BTC, then withdraw via Coinbase.</p>
           <div class="actions">
             <button class="btn-primary" id="btn-cashout-final" type="button">Cash out</button>
             <button class="btn-text" id="btn-home-final" type="button">Home</button>
@@ -710,7 +956,16 @@ export class Game {
       </div>
     `);
     this.bindNav();
-    this.root.querySelector('#btn-cashout-final')?.addEventListener('click', () => this.go('cashout'));
+    this.guideOnce(
+      'quest-complete',
+      'Quest complete — convert NAV → BTC when you’re ready to cash out.',
+      4200,
+      'success'
+    );
+    this.root.querySelector('#btn-cashout-final')?.addEventListener('click', () => {
+      if (!this.requireAuth(AUTH_CASHOUT_REASON, { kind: 'cashout' })) return;
+      this.go('cashout');
+    });
     this.root.querySelector('#btn-home-final')?.addEventListener('click', () => this.go('home'));
   }
 }

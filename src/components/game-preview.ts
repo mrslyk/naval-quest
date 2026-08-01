@@ -6,9 +6,11 @@ export function renderGamePreview(opts: {
   saved: number;
   perLevel: string;
   resumeLabel: string;
+  signedIn: boolean;
 }): string {
-  const { saved, perLevel, resumeLabel } = opts;
+  const { saved, perLevel, resumeLabel, signedIn } = opts;
   const levelNum = Math.min(saved + 1, TOTAL_LEVELS);
+  const cta = signedIn ? resumeLabel : 'Sign up to play';
 
   // Sample "WEALTH" row — Wordle flip states
   const tiles = [
@@ -37,7 +39,12 @@ export function renderGamePreview(opts: {
         ${saved > 0 ? ` · ${saved} cleared` : ''}
         · +${escapeHtml(perLevel)} next
       </p>
-      <button class="wq-play" id="btn-start" type="button">${escapeHtml(resumeLabel)}</button>
+      ${
+        signedIn
+          ? ''
+          : `<p class="wq-gate-note">Free account required — register to play and earn NAV.</p>`
+      }
+      <button class="wq-play" id="btn-start" type="button">${escapeHtml(cta)}</button>
     </section>
   `;
 }

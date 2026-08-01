@@ -222,8 +222,9 @@ export function renderLevelsGrid(opts: {
   perLevel: string;
   levelRewards?: Array<{ level: number; amountLabel: string }>;
   symbol?: string;
+  signedIn?: boolean;
 }): string {
-  const { saved, levelRewards = [], symbol = 'NAV' } = opts;
+  const { saved, levelRewards = [], symbol = 'NAV', signedIn = false } = opts;
   const total = TWEET_LEVELS_ALL.length;
   const rewardByLevel = new Map(levelRewards.map((r) => [r.level, r.amountLabel]));
 
@@ -233,6 +234,13 @@ export function renderLevelsGrid(opts: {
     const locked = index > saved;
     const state = done ? 'done' : current ? 'now' : 'locked';
     const rewardLabel = rewardByLevel.get(level.id) || `${10 + index} ${symbol}`;
+    const rewardState = done
+      ? 'Earned'
+      : locked
+        ? 'Locked'
+        : signedIn
+          ? 'Play now'
+          : 'Sign up to play';
 
     return `
       <article class="lg-row lg-row--${state}" data-level-index="${index}" ${locked ? '' : 'tabindex="0" role="button"'}>
@@ -248,7 +256,7 @@ export function renderLevelsGrid(opts: {
         </div>
         <div class="lg-box lg-box--reward">
           <span class="lg-reward${done ? ' lg-reward--won' : ''}">+${escapeHtml(rewardLabel)}</span>
-          <span class="lg-reward-state">${done ? 'Earned' : current ? 'Play now' : 'Locked'}</span>
+          <span class="lg-reward-state">${rewardState}</span>
         </div>
       </article>`;
   }).join('');
@@ -257,7 +265,7 @@ export function renderLevelsGrid(opts: {
     <section class="levels-grid" aria-label="All ${total} levels">
       <header class="lg-head">
         <h2 class="lg-heading">${total} tweets · 3 columns</h2>
-        <p class="lg-sub">Tweet · Game · Reward</p>
+        <p class="lg-sub">${signedIn ? 'Tweet · Game · Reward' : 'Sign up to unlock play · Tweet · Game · Reward'}</p>
       </header>
 
       <div class="lg-board">

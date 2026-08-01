@@ -31,7 +31,10 @@ export function renderCashoutPage(me: MeResponse | null, progress: number): stri
 
           ${
             !signedIn
-              ? `<button type="button" class="btn-primary" id="btn-auth-signup">Sign in to cash out</button>`
+              ? `<div class="cashout-gate">
+                  <p class="how-note">Sign in required to convert NAV and withdraw BTC.</p>
+                  <button type="button" class="btn-primary" id="btn-auth-signup">Sign up to cash out</button>
+                </div>`
               : `
             <section class="how-card">
               <h2 class="how-card-title">Step 1 · Convert to BTC</h2>

@@ -67,6 +67,7 @@ export function renderHomeScreen(opts: {
   const step = Number(me?.economy?.levelRewardStep ?? REWARD_STEP);
   const nextLevel = Math.min(TOTAL_LEVELS, saved + 1);
   const perLevel = rewardLabelForLevel(nextLevel, symbol, base, step);
+  const signedIn = Boolean(me?.user);
   const resumeLabel = saved > 0 ? `Continue` : `Play`;
   const levelRewards =
     me?.economy?.levelRewards?.map((r) => ({ level: r.level, amountLabel: r.amountLabel })) ??
@@ -93,7 +94,15 @@ export function renderHomeScreen(opts: {
             Get rich without getting lucky — ${TOTAL_LEVELS} levels from Naval’s tweetstorm.
             Earn ${escapeHtml(symbol)}. Cash out in BTC.
           </p>
-          ${renderGamePreview({ saved, perLevel, resumeLabel })}
+          ${
+            signedIn
+              ? ''
+              : `<p class="wq-account-banner" role="status">
+                  <strong>Register to play.</strong>
+                  A free account unlocks levels and credits ${escapeHtml(symbol)} to your wallet.
+                </p>`
+          }
+          ${renderGamePreview({ saved, perLevel, resumeLabel, signedIn })}
           ${loading ? '<p class="home-loading">Loading wallet…</p>' : ''}
           <div class="wq-meta">
             <p class="wq-date">${escapeHtml(today)}</p>
@@ -103,11 +112,11 @@ export function renderHomeScreen(opts: {
             <button class="wq-btn-outline" id="btn-sponsor-hero" type="button">Sponsor</button>
             <button class="wq-btn-ghost" id="btn-videos-home" type="button">Videos</button>
             <button class="wq-btn-ghost" id="btn-cashout-home" type="button">Cash out</button>
-            ${saved > 0 ? '<button class="wq-btn-ghost" id="btn-reset" type="button">Start over</button>' : ''}
+            ${saved > 0 && signedIn ? '<button class="wq-btn-ghost" id="btn-reset" type="button">Start over</button>' : ''}
           </div>
         </header>
 
-        ${renderLevelsGrid({ saved, perLevel, levelRewards, symbol })}
+        ${renderLevelsGrid({ saved, perLevel, levelRewards, symbol, signedIn })}
 
         <div class="wq-home-footer">
           ${renderHowFlowAnimation(symbol)}
@@ -115,7 +124,7 @@ export function renderHomeScreen(opts: {
           <div class="wq-stats">${statsHtml}</div>
         </div>
 
-        <button class="wq-play wq-play--secondary" id="btn-start-2" type="button" hidden aria-hidden="true">${escapeHtml(resumeLabel)}</button>
+        <button class="wq-play wq-play--secondary" id="btn-start-2" type="button" hidden aria-hidden="true">${escapeHtml(signedIn ? resumeLabel : 'Sign up to play')}</button>
         <button class="wq-btn-outline" id="btn-sponsor-home" type="button" hidden aria-hidden="true">Sponsor</button>
       </main>
       ${renderSlykDock()}

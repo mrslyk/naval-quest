@@ -8,7 +8,7 @@ export function renderWalletBar(me: MeResponse | null): string {
   if (!user) {
     return `
       <div class="wallet-bar">
-        <span class="wallet-bar-muted">Play to earn NAV</span>
+        <span class="wallet-bar-muted">Account required to play &amp; earn NAV</span>
         <div class="wallet-bar-actions">
           <button type="button" class="btn-text" id="btn-auth-login">Log in</button>
           <button type="button" class="btn-secondary btn-secondary--sm" id="btn-auth-signup">Sign up</button>
@@ -31,14 +31,24 @@ export function renderWalletBar(me: MeResponse | null): string {
   `;
 }
 
-export function renderAuthModal(mode: 'login' | 'signup'): string {
+export function renderAuthModal(
+  mode: 'login' | 'signup',
+  opts: { reason?: string } = {}
+): string {
   const isSignup = mode === 'signup';
+  const reason =
+    opts.reason ||
+    (isSignup
+      ? 'Free account required to play. You’ll earn NAV to your Slyk wallet for every level you clear.'
+      : 'Log in to continue playing and keep your NAV rewards.');
+
   return `
     <div class="modal-backdrop" id="auth-modal">
-      <div class="modal" role="dialog" aria-labelledby="auth-title">
+      <div class="modal" role="dialog" aria-labelledby="auth-title" aria-modal="true">
         <button type="button" class="modal-close" id="auth-close" aria-label="Close">×</button>
-        <h2 class="modal-title" id="auth-title">${isSignup ? 'Create account' : 'Welcome back'}</h2>
-        <p class="modal-lede">One Slyk wallet for Naval Quest — earn NAV, spend help, cash out.</p>
+        <p class="modal-kicker">${isSignup ? 'Required to play' : 'Welcome back'}</p>
+        <h2 class="modal-title" id="auth-title">${isSignup ? 'Create your account' : 'Log in to play'}</h2>
+        <p class="modal-lede">${escapeHtml(reason)}</p>
         <form class="fund-form" id="auth-form">
           ${
             isSignup
@@ -55,13 +65,13 @@ export function renderAuthModal(mode: 'login' | 'signup'): string {
             <input class="field-input" name="password" type="password" autocomplete="${isSignup ? 'new-password' : 'current-password'}" required minlength="6" />
           </label>
           <p class="field-error" id="auth-error" hidden></p>
-          <button class="btn-primary" type="submit">${isSignup ? 'Sign up & play' : 'Log in'}</button>
+          <button class="btn-primary" type="submit">${isSignup ? 'Sign up & play' : 'Log in & play'}</button>
         </form>
         <p class="modal-switch">
           ${
             isSignup
               ? `Have an account? <button type="button" class="btn-text btn-text--link" id="auth-switch-login">Log in</button>`
-              : `New here? <button type="button" class="btn-text btn-text--link" id="auth-switch-signup">Sign up</button>`
+              : `New here? <button type="button" class="btn-text btn-text--link" id="auth-switch-signup">Sign up free</button>`
           }
         </p>
       </div>
