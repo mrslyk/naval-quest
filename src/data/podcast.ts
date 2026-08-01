@@ -2,6 +2,10 @@
  * Naval × Nivi — "How to Get Rich" mega-episode (3h 36m).
  * Video: https://www.youtube.com/watch?v=1-TZqOsVCNM
  * Transcript: https://nav.al/rich
+ *
+ * Per-level startSec/endSec are matched from YouTube English ASR against
+ * the tweet / nav.al dialogue (not just chapter headers), so “Hear Naval”
+ * lands on the exact discussion for that level.
  */
 
 export const PODCAST_YOUTUBE_ID = '1-TZqOsVCNM';
@@ -73,206 +77,292 @@ export const PODCAST_CHAPTERS: PodcastChapter[] = [
 ];
 
 export interface LevelPodcastMeta {
-  /** Index into PODCAST_CHAPTERS for this level's primary clip. */
+  /** Index into PODCAST_CHAPTERS (display / fallback window). */
   chapterIndex: number;
+  /**
+   * Exact YouTube start (seconds), matched from ASR ↔ tweet/transcript.
+   * Prefer this over the chapter header when present.
+   */
+  startSec: number;
+  /** Preferred clip end (seconds). Embed stops here when supported. */
+  endSec: number;
   /** Short pull-quote from the podcast discussion of this tweet. */
   excerpt: string;
 }
 
 /**
- * Maps each game level (1–39) to the podcast segment where Naval expands on that tweet.
+ * Maps each game level (1–39) to the podcast moment where Naval expands on that tweet.
+ * startSec/endSec are transcript-aligned; chapterIndex names the surrounding section.
  */
 export const LEVEL_PODCAST: Record<number, LevelPodcastMeta> = {
   1: {
     chapterIndex: 1,
+    startSec: 112,
+    endSec: 320,
     excerpt:
       'Wealth is assets that earn while you sleep. Money is how we transfer wealth. Status is your rank in the social hierarchy — a zero-sum game.',
   },
   2: {
     chapterIndex: 2,
+    startSec: 728,
+    endSec: 870,
     excerpt:
-      'True wealth creation is not about taking money. It is creating abundance. Everyone can be rich — the engine is technology applied to create more for everyone.',
+      'True wealth creation is not about taking money. It is creating abundance. If you secretly despise wealth, it will elude you.',
   },
   3: {
     chapterIndex: 1,
+    startSec: 283,
+    endSec: 410,
     excerpt:
       'Status is a zero-sum game. To win, someone else must lose. Avoid status games — they make you angry and combative.',
   },
   4: {
     chapterIndex: 6,
+    startSec: 1461,
+    endSec: 1640,
     excerpt:
       'You will not get rich renting out your time. You must own equity — a piece of a business — to gain financial freedom.',
   },
   5: {
     chapterIndex: 8,
+    startSec: 1875,
+    endSec: 2030,
     excerpt:
       'You get rich by giving society what it wants but does not yet know how to get — at scale.',
   },
   6: {
     chapterIndex: 10,
+    startSec: 2321,
+    endSec: 2500,
     excerpt:
       'Pick an industry where you can play long-term games with long-term people. All returns compound when the game keeps going.',
   },
   7: {
     chapterIndex: 9,
+    startSec: 2046,
+    endSec: 2220,
     excerpt:
       'The internet massively broadened the possible space of careers. Most people have not figured this out yet.',
   },
   8: {
     chapterIndex: 10,
+    startSec: 2600,
+    endSec: 2670,
     excerpt:
       'Play iterated games. All returns in life — wealth, relationships, knowledge — come from compound interest.',
   },
   9: {
     chapterIndex: 11,
+    startSec: 2676,
+    endSec: 2850,
     excerpt:
       'Pick partners with intelligence, energy, and integrity. They are very rare — when you find them, hold on.',
   },
   10: {
     chapterIndex: 12,
+    startSec: 2960,
+    endSec: 3140,
     excerpt:
       'Do not partner with cynics and pessimists. Their beliefs are self-fulfilling and will drag you down.',
   },
   11: {
     chapterIndex: 15,
+    startSec: 3994,
+    endSec: 4170,
     excerpt:
       'Learn to sell. Learn to build. If you can do both, you will be unstoppable.',
   },
   12: {
     chapterIndex: 13,
+    startSec: 3288,
+    endSec: 3385,
     excerpt:
       'Arm yourself with specific knowledge, accountability, and leverage — the three great weapons.',
   },
   13: {
     chapterIndex: 13,
+    startSec: 3390,
+    endSec: 3460,
     excerpt:
       'Specific knowledge is knowledge you cannot be trained for. If society can train you, it can replace you.',
   },
   14: {
-    chapterIndex: 14,
+    chapterIndex: 13,
+    startSec: 3463,
+    endSec: 3585,
     excerpt:
       'Specific knowledge is found by pursuing genuine curiosity — not whatever is hot right now.',
   },
   15: {
-    chapterIndex: 14,
+    chapterIndex: 13,
+    startSec: 3588,
+    endSec: 3660,
     excerpt:
       'Building specific knowledge will feel like play to you but will look like work to others.',
   },
   16: {
     chapterIndex: 19,
+    startSec: 5147,
+    endSec: 5330,
     excerpt:
       'Embrace accountability under your own name. Society rewards you with responsibility, equity, and leverage.',
   },
   17: {
     chapterIndex: 21,
+    startSec: 5718,
+    endSec: 5890,
     excerpt:
       'Fortunes require leverage — from capital, people, and products with no marginal cost of replication.',
   },
   18: {
     chapterIndex: 22,
+    startSec: 6095,
+    endSec: 6170,
     excerpt:
       'Code and media are permissionless leverage. They work for you while you sleep — no one can stop you from creating them.',
   },
   19: {
     chapterIndex: 27,
+    startSec: 7688,
+    endSec: 7815,
     excerpt:
       'Set an aspirational personal hourly rate. If fixing a problem saves less than your rate, ignore it.',
   },
   20: {
     chapterIndex: 30,
+    startSec: 8450,
+    endSec: 8560,
     excerpt:
       'Become the best in the world at what you do. Keep redefining what you do until this is true.',
   },
   21: {
-    chapterIndex: 20,
+    chapterIndex: 22,
+    startSec: 5970,
+    endSec: 6090,
     excerpt:
       'Capital means money. To raise it, apply specific knowledge with accountability and demonstrate good judgment.',
   },
   22: {
     chapterIndex: 21,
+    startSec: 5764,
+    endSec: 5920,
     excerpt:
       'Labor is the oldest form of leverage — everyone fights over it. Do not waste your life chasing it.',
   },
   23: {
-    chapterIndex: 21,
+    chapterIndex: 22,
+    startSec: 6112,
+    endSec: 6175,
     excerpt:
       'Capital and labor are permissioned leverage. Someone has to give you capital; someone has to follow you.',
   },
   24: {
     chapterIndex: 22,
+    startSec: 6140,
+    endSec: 6240,
     excerpt:
       'Code and media are permissionless — the leverage behind the newly rich. Build assets that replicate for free.',
   },
   25: {
     chapterIndex: 22,
+    startSec: 6175,
+    endSec: 6245,
     excerpt:
       'An army of robots is freely available — packed in data centers. Use it.',
   },
   26: {
     chapterIndex: 22,
+    startSec: 6133,
+    endSec: 6205,
     excerpt:
       "If you can't code, write books and blogs, record videos and podcasts.",
   },
   27: {
     chapterIndex: 26,
+    startSec: 7290,
+    endSec: 7420,
     excerpt: 'Leverage is a force multiplier for your judgment.',
   },
   28: {
     chapterIndex: 26,
+    startSec: 7476,
+    endSec: 7620,
     excerpt:
       'Judgment requires experience, but you can build it faster by learning foundational skills.',
   },
   29: {
-    chapterIndex: 18,
+    chapterIndex: 16,
+    startSec: 4343,
+    endSec: 4455,
     excerpt:
       'There is no skill called "business." Avoid business magazines and business classes.',
   },
   30: {
-    chapterIndex: 17,
+    chapterIndex: 16,
+    startSec: 4348,
+    endSec: 4485,
     excerpt:
       'Study microeconomics, game theory, psychology, persuasion, ethics, mathematics, and computers.',
   },
   31: {
     chapterIndex: 16,
+    startSec: 4363,
+    endSec: 4540,
     excerpt: 'Reading is faster than listening. Doing is faster than watching.',
   },
   32: {
     chapterIndex: 29,
+    startSec: 8198,
+    endSec: 8370,
     excerpt:
       'Be too busy to "do coffee" while still keeping an uncluttered calendar.',
   },
   33: {
     chapterIndex: 27,
+    startSec: 7818,
+    endSec: 7885,
     excerpt:
       'Outsource any task that costs less than your aspirational hourly rate — your time is the constraint.',
   },
   34: {
     chapterIndex: 28,
+    startSec: 7935,
+    endSec: 8110,
     excerpt:
       'Work as hard as you can — but who you work with and what you work on matter more than raw effort.',
   },
   35: {
     chapterIndex: 30,
+    startSec: 8450,
+    endSec: 8560,
     excerpt:
       'Keep redefining what you do until you are the best in the world at it.',
   },
   36: {
     chapterIndex: 36,
+    startSec: 9731,
+    endSec: 9910,
     excerpt:
       'There are no get-rich-quick schemes — that is just someone else getting rich off you.',
   },
   37: {
     chapterIndex: 33,
+    startSec: 9057,
+    endSec: 9230,
     excerpt:
       'Apply specific knowledge with leverage and accountability — eventually you will get what you deserve.',
   },
   38: {
     chapterIndex: 37,
+    startSec: 10006,
+    endSec: 10115,
     excerpt:
       'Productize yourself — turn your specific knowledge into something that scales beyond your hours.',
   },
   39: {
     chapterIndex: 35,
+    startSec: 9479,
+    endSec: 9680,
     excerpt:
       'When you are finally wealthy, you will realize it was not what you were seeking. A calm mind, a fit body, a house full of love — these must be earned.',
   },
@@ -289,10 +379,14 @@ export function getPodcastSegment(levelId: number): {
   const meta = LEVEL_PODCAST[levelId];
   if (!meta) return null;
 
-  const chapter = PODCAST_CHAPTERS[meta.chapterIndex];
-  const next = PODCAST_CHAPTERS[meta.chapterIndex + 1];
-  const startSec = chapter.startSec;
-  const endSec = next ? next.startSec - 1 : startSec + 600;
+  const chapter = PODCAST_CHAPTERS[meta.chapterIndex] ?? PODCAST_CHAPTERS[0];
+  const startSec = Math.max(0, Math.floor(meta.startSec));
+  const chapterEnd =
+    PODCAST_CHAPTERS[meta.chapterIndex + 1]?.startSec ?? startSec + 600;
+  const endSec = Math.max(
+    startSec + 45,
+    Math.min(Math.floor(meta.endSec), chapterEnd + 120)
+  );
 
   const youtubeUrl = `https://www.youtube.com/watch?v=${PODCAST_YOUTUBE_ID}&t=${startSec}s`;
   const embedUrl = `https://www.youtube-nocookie.com/embed/${PODCAST_YOUTUBE_ID}?start=${startSec}&end=${endSec}&modestbranding=1&rel=0`;

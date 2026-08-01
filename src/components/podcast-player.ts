@@ -30,7 +30,11 @@ export function renderPodcastPlayer(levelId: number): string {
       <div class="podcast-block-head">
         <span class="podcast-badge">Naval Podcast</span>
         <a class="podcast-chapter podcast-chapter--link" href="${escapeHtml(transcriptUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(chapterTitle)}</a>
-        ${seg ? `<span class="podcast-time">${formatTimestamp(startSec)} · ~${durationLabel}</span>` : ''}
+        ${
+          seg
+            ? `<span class="podcast-time" title="Transcript-aligned clip">${formatTimestamp(startSec)}–${formatTimestamp(endSec)} · ~${durationLabel}</span>`
+            : ''
+        }
       </div>
       ${excerpt ? `<p class="podcast-excerpt">${escapeHtml(excerpt)}</p>` : ''}
       <div class="podcast-actions">
@@ -38,7 +42,7 @@ export function renderPodcastPlayer(levelId: number): string {
           embedUrl
             ? `<button type="button" class="btn-podcast-play" id="btn-podcast-play" data-embed="${escapeHtml(embedUrl)}" data-youtube="${escapeHtml(youtubeUrl)}">
           <span class="btn-podcast-icon" aria-hidden="true">▶</span>
-          Hear Naval on this tweet
+          Hear Naval at ${formatTimestamp(startSec)}
         </button>`
             : ''
         }
@@ -82,8 +86,14 @@ export function bindPodcastPlayer(root: ParentNode): void {
     } else {
       frame.src = '';
       wrap.hidden = true;
-      btn.innerHTML =
-        '<span class="btn-podcast-icon" aria-hidden="true">▶</span> Hear Naval on this tweet';
+      let stamp = 'this tweet';
+      try {
+        const start = new URL(embed).searchParams.get('start');
+        if (start != null) stamp = formatTimestamp(Number(start));
+      } catch {
+        /* keep fallback label */
+      }
+      btn.innerHTML = `<span class="btn-podcast-icon" aria-hidden="true">▶</span> Hear Naval at ${stamp}`;
     }
   });
 }

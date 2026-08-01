@@ -131,7 +131,7 @@ export function renderTweetCard(level: TweetLevel, total: number): string {
 
       ${renderRichQuotes(level.id)}
       ${renderPodcastPlayer(level.id)}
-      ${renderLevelMediaStrip()}
+      ${renderLevelMediaStrip(level.id)}
     </article>
   `;
 }

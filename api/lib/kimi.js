@@ -21,6 +21,7 @@ export async function kimiChat({
   user,
   temperature = 0.4,
   json = false,
+  timeoutMs = 12000,
 }) {
   const { apiKey, baseUrl, model } = kimiConfig();
   if (!apiKey) {
@@ -41,14 +42,29 @@ export async function kimiChat({
     body.response_format = { type: 'json_object' };
   }
 
-  const res = await fetch(`${baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), Math.max(2000, timeoutMs));
+  let res;
+  try {
+    res = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    if (err?.name === 'AbortError') {
+      const timeoutErr = new Error('Kimi request timed out');
+      timeoutErr.status = 504;
+      throw timeoutErr;
+    }
+    throw err;
+  }
+  clearTimeout(timer);
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

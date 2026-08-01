@@ -8,6 +8,8 @@ import {
   youtubeEmbedUrl,
   youtubeWatchUrl,
 } from '../data/media';
+import { formatTimestamp, getPodcastSegment } from '../data/podcast';
+import { navAlSectionUrl } from '../data/naval-rich';
 import { escapeHtml } from '../utils';
 
 function renderVideoCard(video: MediaVideo, compact = false): string {
@@ -138,14 +140,20 @@ export function renderMediaHub(opts: { compactVideos?: boolean; videoLimit?: num
 }
 
 /** Compact strip for in-level context. */
-export function renderLevelMediaStrip(): string {
+export function renderLevelMediaStrip(levelId?: number): string {
   const v = FEATURED_VIDEO;
+  const seg = levelId != null ? getPodcastSegment(levelId) : null;
+  const watch = seg?.youtubeUrl ?? youtubeWatchUrl(v.youtubeId);
+  const watchLabel = seg
+    ? `Podcast @ ${formatTimestamp(seg.startSec)}`
+    : v.title;
+  const transcript = levelId != null ? navAlSectionUrl(levelId) : 'https://nav.al/rich';
   return `
     <aside class="level-media-strip" aria-label="Naval media">
       <span class="level-media-label">Naval media</span>
-      <a class="level-media-link" href="${escapeHtml(youtubeWatchUrl(v.youtubeId))}" target="_blank" rel="noopener noreferrer">${escapeHtml(v.title)}</a>
+      <a class="level-media-link" href="${escapeHtml(watch)}" target="_blank" rel="noopener noreferrer">${escapeHtml(watchLabel)}</a>
       <span class="level-media-sep">·</span>
-      <a class="level-media-link" href="https://nav.al/rich" target="_blank" rel="noopener noreferrer">Transcript</a>
+      <a class="level-media-link" href="${escapeHtml(transcript)}" target="_blank" rel="noopener noreferrer">Transcript</a>
       <span class="level-media-sep">·</span>
       <a class="level-media-link" href="${escapeHtml(TWEETSTORM_URL)}" target="_blank" rel="noopener noreferrer">Tweetstorm</a>
     </aside>

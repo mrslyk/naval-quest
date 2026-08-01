@@ -885,7 +885,7 @@ export class Game {
     const goNext = () => this.advanceAfterLevel(level);
 
     sheet.querySelector('#btn-next')?.addEventListener('click', async () => {
-      // Try Naval AI bonus roll before advancing
+      // Try Naval AI bonus roll before advancing (hard timeout so play never sticks)
       if (!level || !this.me?.user) {
         goNext();
         return;
@@ -896,12 +896,17 @@ export class Game {
         nextBtn.textContent = 'Checking for Naval…';
       }
       try {
-        const roll = await rollNavalBonus({
-          level: level.id,
-          tweet: level.tweet,
-          title: level.title,
-          navalIntro: level.navalIntro,
-        });
+        const roll = await Promise.race([
+          rollNavalBonus({
+            level: level.id,
+            tweet: level.tweet,
+            title: level.title,
+            navalIntro: level.navalIntro,
+          }),
+          new Promise<{ offer: false; reason: string }>((resolve) =>
+            setTimeout(() => resolve({ offer: false, reason: 'client_timeout' }), 10000)
+          ),
+        ]);
         if (roll.offer && roll.questionId && roll.question && roll.bonusLabel) {
           toastInfo(`Naval appears — answer for a chance at +${roll.bonusLabel}.`, 3600);
           this.root.insertAdjacentHTML(
